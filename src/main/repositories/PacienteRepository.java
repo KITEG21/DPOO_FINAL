@@ -5,24 +5,43 @@ import java.util.List;
 import main.models.Persona;
 
 public class PacienteRepository {
-	
-	private List<Persona> pacientes = new ArrayList<>();
+    private List<Persona> pacientes = new ArrayList<>();
 
-	public void save(Persona persona) {
+    public Persona save(Persona persona) {
         pacientes.add(persona);
+        return persona;
     }
 
-    public Persona getByCodigo(final String codigo) {
-    	return pacientes.stream()
-                .filter(new java.util.function.Predicate<Persona>() {
-                    @Override
-                    public boolean test(Persona e) {
-                        return e.obtenerCodigo().equals(codigo);
-                    }
-                })
-                .findFirst()
-                .orElse(null);
+    public Persona getByCodigo(String codigo) {
+        for (Persona p : pacientes) {
+            if (p.obtenerCodigo().equals(codigo)) {
+                return p;
+            }
+        }
+        return null;
     }
-    
-    //Add CREATE, POST & DELETE
+
+    public List<Persona> getAll() {
+        return new ArrayList<>(pacientes);
+    }
+
+    public boolean update(Persona persona) {
+        for (int i = 0; i < pacientes.size(); i++) {
+            if (pacientes.get(i).obtenerCodigo().equals(persona.obtenerCodigo())) {
+                pacientes.set(i, persona);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean delete(String codigo) {
+        for (int i = 0; i < pacientes.size(); i++) {
+            if (pacientes.get(i).obtenerCodigo().equals(codigo)) {
+                pacientes.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -26,6 +26,11 @@ public class Enfermedad implements Codificador {
 		setPeriodoIncubacion(periodoIncubacion);
 		setCantPacientes(cantPacientes);
 	}
+	public Enfermedad(String nombre, String tipo, String codigo){
+		setNombreComun(nombre);
+		setViaTransmision(tipo);
+		setNombreCientifico(codigo);
+	}
 
 	// Getters y Setters
 	public String getNombreComun() {

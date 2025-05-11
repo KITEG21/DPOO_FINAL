@@ -20,7 +20,13 @@ public class Persona implements Codificador {
 		setDireccion(direccion);
 		setCarnetIdentidad(carnetIdentidad);
 	}
+	public Persona(String nombre, String apellido, String carnetIdentidad) {
+		setNombre(nombre);
+		setApellidos(apellidos);
+		setCarnetIdentidad(carnetIdentidad);
 
+    }
+	
 	// Getters y Setters
 	public String getNombre() {
 		return nombre;

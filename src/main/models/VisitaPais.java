@@ -18,3 +18,4 @@ public class VisitaPais {
 		this.diasEstancia = diasEstancia;
 	}
 }
+ 
