@@ -2,7 +2,9 @@ package main.repositories;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import main.models.Persona;
+import main.models.PersonaEnferma;
 
 public class PacienteRepository {
     private List<Persona> pacientes = new ArrayList<>();
@@ -24,7 +26,18 @@ public class PacienteRepository {
     public List<Persona> getAll() {
         return new ArrayList<>(pacientes);
     }
+    
+    public List<Persona> getAllSick(){
+    	ArrayList<Persona> pacientesEnfermos = new ArrayList<>();
+    	for(Persona p : pacientes){
+    		if(p instanceof PersonaEnferma){
+    			pacientesEnfermos.add(p);
+    		}
+    	}
+    	return pacientesEnfermos;
 
+    }
+    
     public boolean update(Persona persona) {
         for (int i = 0; i < pacientes.size(); i++) {
             if (pacientes.get(i).obtenerCodigo().equals(persona.obtenerCodigo())) {

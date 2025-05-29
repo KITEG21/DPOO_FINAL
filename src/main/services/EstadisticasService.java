@@ -2,11 +2,18 @@ package main.services;
 
 import main.models.Enfermedad;
 import main.models.Persona;
-import main.models.PersonaEnferma;
+import main.models.PersonaEnferma; // Assuming PersonaEnferma extends Persona and has specific fields
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Date;
+
 
 public class EstadisticasService {
+
     private PacienteService pacienteService;
     private EnfermedadService enfermedadService;
 
@@ -15,158 +22,203 @@ public class EstadisticasService {
         this.enfermedadService = enfermedadService;
     }
 
-    // Estad�sticas existentes
+    /**
+     * Returns the total number of registered patients.
+     */
     public int getTotalPacientes() {
+        if (pacienteService == null || pacienteService.getAll() == null) {
+            return 0;
+        }
         return pacienteService.getAll().size();
     }
-    
+
+    /**
+     * Returns the total number of registered diseases.
+     */
     public int getTotalEnfermedades() {
+        if (enfermedadService == null || enfermedadService.getAll() == null) {
+            return 0;
+        }
         return enfermedadService.getAll().size();
     }
-    
+
+    /**
+     * Returns a map of patients counted by sex (e.g., "Masculino": count, "Femenino": count).
+     */
     public Map<String, Integer> getPacientesPorSexo() {
-        Map<String, Integer> stats = new HashMap<>();
-        for (Persona p : pacienteService.getAll()) {
-            String sexo = p.getSexo() != null ? p.getSexo() : "No especificado";
-            stats.put(sexo, stats.getOrDefault(sexo, 0) + 1);
-        }
-        return stats;
-    }
-    
-    public Map<String, Integer> getEnfermedadesPorTipo() {
-        Map<String, Integer> stats = new HashMap<>();
-        for (Enfermedad e : enfermedadService.getAll()) {
-            String tipo = e.getViaTransmision() != null ? e.getViaTransmision() : "No especificado";
-            stats.put(tipo, stats.getOrDefault(tipo, 0) + 1);
-        }
-        return stats;
-    }
-    
-    // Nuevas estad�sticas
-    
-    // 1. Relaci�n entre contagiados en territorio nacional y en el extranjero
-    public Map<String, Integer> getPacientesPorOrigen() {
-        Map<String, Integer> stats = new HashMap<>();
-        stats.put("Nacional", 0);
-        stats.put("Extranjero", 0);
-    
-        for (Persona p : pacienteService.getAll()) {
-            if (p instanceof PersonaEnferma) {
-                PersonaEnferma pe = (PersonaEnferma) p;
-                if (pe.isContagioExterior()) {
-                    stats.put("Extranjero", stats.get("Extranjero") + 1);
+        Map<String, Integer> porSexo = new HashMap<>();
+        porSexo.put("Masculino", 0);
+        porSexo.put("Femenino", 0);
+        porSexo.put("Otro", 0); // Or however you handle other/unspecified
+
+        if (pacienteService != null && pacienteService.getAll() != null) {
+            for (Persona p : pacienteService.getAll()) {
+                String sexo = p.getSexo(); // Assuming getSexo() returns "M", "F", or other
+                if ("M".equalsIgnoreCase(sexo) || "Masculino".equalsIgnoreCase(sexo)) {
+                    porSexo.put("Masculino", porSexo.get("Masculino") + 1);
+                } else if ("F".equalsIgnoreCase(sexo) || "Femenino".equalsIgnoreCase(sexo)) {
+                    porSexo.put("Femenino", porSexo.get("Femenino") + 1);
                 } else {
-                    stats.put("Nacional", stats.get("Nacional") + 1);
+                    porSexo.put("Otro", porSexo.get("Otro") + 1);
                 }
-        }
-    }
-    return stats;
-}
-    
-    // 2. Relaci�n entre casos por rango de edad y sexo
-    public Map<String, Map<String, Integer>> getCasosPorEdadYSexo() {
-        Map<String, Map<String, Integer>> stats = new HashMap<>();
-        
-        // Definir rangos de edad
-        String[] rangosEdad = {"0-18", "19-30", "31-45", "46-60", "60+"};
-        for (String rango : rangosEdad) {
-            Map<String, Integer> porSexo = new HashMap<>();
-            porSexo.put("Masculino", 0);
-            porSexo.put("Femenino", 0);
-            stats.put(rango, porSexo);
-        }
-        
-        for (Persona p : pacienteService.getAll()) {
-            int edad = p.getEdad();
-            String rango;
-            
-            if (edad <= 18) rango = "0-18";
-            else if (edad <= 30) rango = "19-30";
-            else if (edad <= 45) rango = "31-45";
-            else if (edad <= 60) rango = "46-60";
-            else rango = "60+";
-            
-            String sexo = p.getSexo().equals("M") ? "Masculino" : "Femenino";
-            Map<String, Integer> porSexo = stats.get(rango);
-            porSexo.put(sexo, porSexo.get(sexo) + 1);
-        }
-        
-        return stats;
-    }
-    
-    // 3. Relaci�n entre curados, fallecidos, enfermos por enfermedad
-    public Map<String, Map<String, Integer>> getEstadisticasPorEnfermedad() {
-        Map<String, Map<String, Integer>> stats = new HashMap<>();
-        
-        for (Enfermedad e : enfermedadService.getAll()) {
-            Map<String, Integer> estadisticas = new HashMap<>();
-            estadisticas.put("Curados", e.getCurados());
-            estadisticas.put("Fallecidos", e.getMuertos());
-            estadisticas.put("Enfermos", e.getEnfermosActivos());
-            
-            stats.put(e.getNombreComun(), estadisticas);
-        }
-        
-        return stats;
-    }
-    
-    // 4. Lista de personas en vigilancia que son contactos de enfermos en el exterior
-    public List<Persona> getContactosDeEnfermosExterior() {
-    List<Persona> contactos = new ArrayList<>();
-    
-    if (pacienteService == null || pacienteService.getAll() == null) {
-        return contactos; // Retorna lista vacía en lugar de null
-    }
-    
-    for (Persona p : pacienteService.getAll()) {
-        if (p instanceof PersonaEnferma) {
-            PersonaEnferma pe = (PersonaEnferma) p;
-            if (pe.isEnVigilancia() && pe.isContactoExterior()) {
-                contactos.add(p);
             }
         }
-    }
-    
-    return contactos;
+        return porSexo;
     }
 
-public Map<String, Integer> getEnfermosPorPaisYMes(String pais, int mes, int anio) {
-    Map<String, Integer> stats = new HashMap<>();
-    
-    // Añadir logs para depuración
-    System.out.println("Buscando enfermos en país: " + pais + ", mes: " + mes + ", año: " + anio);
-    int encontrados = 0;
-    
-    for (Persona p : pacienteService.getAll()) {
-        if (p instanceof PersonaEnferma) {
-            PersonaEnferma pe = (PersonaEnferma) p;
-            
-            // Verificar que los datos necesarios no sean null
-            if (pe.getPais() == null || pe.getFechaContagio() == null || pe.getEnfermedad() == null) {
-                continue;
-            }
-            
-            // Ajustar comparación de fechas (restar 1900 al año para comparación con Date)
-            int yearToCompare = anio - 1900;
-            int monthToCompare = mes - 1; // Los meses en Date van de 0-11
-            
-            
-            if (pe.isEnfermo() && 
-                pe.getPais().equalsIgnoreCase(pais) && 
-                pe.getFechaContagio().getMonth() == monthToCompare && 
-                pe.getFechaContagio().getYear() == yearToCompare) {
-                
-                encontrados++;
-                String nombreEnfermedad = pe.getEnfermedad().getNombreComun() != null ? 
-                    pe.getEnfermedad().getNombreComun() : "No especificada";
-                
-                stats.put(nombreEnfermedad, stats.getOrDefault(nombreEnfermedad, 0) + 1);
-                System.out.println("¡Coincidencia encontrada! " + nombreEnfermedad);
+    /**
+     * Returns a map of diseases counted by their type of transmission.
+     * (e.g., "Respiratoria": count, "Vectorial": count)
+     */
+    public Map<String, Integer> getEnfermedadesPorTipo() {
+        Map<String, Integer> porTipo = new HashMap<>();
+        if (enfermedadService != null && enfermedadService.getAll() != null) {
+            for (Enfermedad e : enfermedadService.getAll()) {
+                String tipo = e.getViaTransmision(); // Assuming this is the field for type
+                porTipo.put(tipo, porTipo.getOrDefault(tipo, 0) + 1);
             }
         }
+        return porTipo;
     }
-    
-    System.out.println("Total de enfermos encontrados: " + encontrados);
-    return stats;
-}
+
+    /**
+     * Returns a map of patients counted by their origin of contagion.
+     * (e.g., "Nacional": count, "Extranjero": count)
+     * This assumes PersonaEnferma has a boolean isContagioExterior()
+     */
+    public Map<String, Integer> getPacientesPorOrigen() {
+        Map<String, Integer> porOrigen = new HashMap<>();
+        porOrigen.put("Nacional", 0);
+        porOrigen.put("Extranjero", 0);
+
+        if (pacienteService != null && pacienteService.getAll() != null) {
+            for (Persona p : pacienteService.getAll()) {
+                if (p instanceof PersonaEnferma) {
+                    PersonaEnferma pe = (PersonaEnferma) p;
+                    if (pe.isContagioExterior()) {
+                        porOrigen.put("Extranjero", porOrigen.get("Extranjero") + 1);
+                    } else {
+                        porOrigen.put("Nacional", porOrigen.get("Nacional") + 1);
+                    }
+                }
+            }
+        }
+        return porOrigen;
+    }
+
+    /**
+     * Returns a map where keys are age ranges (e.g., "0-18", "19-30")
+     * and values are another map with sex ("Masculino", "Femenino") to count.
+     * Example: {"0-18": {"Masculino": 5, "Femenino": 3}, ...}
+     */
+    public Map<String, Map<String, Integer>> getCasosPorEdadYSexo() {
+        Map<String, Map<String, Integer>> casos = new HashMap<>();
+        // Define age ranges
+        String[] rangosEdad = {"0-18", "19-30", "31-45", "46-60", "61+"};
+        for (String rango : rangosEdad) {
+            Map<String, Integer> sexoMap = new HashMap<>();
+            sexoMap.put("Masculino", 0);
+            sexoMap.put("Femenino", 0);
+            sexoMap.put("Otro", 0);
+            casos.put(rango, sexoMap);
+        }
+
+        if (pacienteService != null && pacienteService.getAll() != null) {
+            for (Persona p : pacienteService.getAll()) {
+                int edad = p.getEdad();
+                String rangoActual = "";
+                if (edad <= 18) rangoActual = "0-18";
+                else if (edad <= 30) rangoActual = "19-30";
+                else if (edad <= 45) rangoActual = "31-45";
+                else if (edad <= 60) rangoActual = "46-60";
+                else rangoActual = "61+";
+
+                Map<String, Integer> sexoMap = casos.get(rangoActual);
+                String sexo = p.getSexo();
+                if ("M".equalsIgnoreCase(sexo) || "Masculino".equalsIgnoreCase(sexo)) {
+                    sexoMap.put("Masculino", sexoMap.get("Masculino") + 1);
+                } else if ("F".equalsIgnoreCase(sexo) || "Femenino".equalsIgnoreCase(sexo)) {
+                    sexoMap.put("Femenino", sexoMap.get("Femenino") + 1);
+                } else {
+                    sexoMap.put("Otro", sexoMap.get("Otro") + 1);
+                }
+            }
+        }
+        return casos;
+    }
+
+    /**
+     * Returns a map where keys are disease names (or codes)
+     * and values are another map with status ("Curados", "Fallecidos", "Enfermos") to count.
+     * This uses the curados, muertos, enfermosActivos fields from Enfermedad model.
+     * Example: {"COVID-19": {"Curados": 10, "Fallecidos": 2, "Enfermos": 5}, ...}
+     */
+    public Map<String, Map<String, Integer>> getEstadisticasPorEnfermedad() {
+        Map<String, Map<String, Integer>> estadisticas = new HashMap<>();
+        if (enfermedadService != null && enfermedadService.getAll() != null) {
+            for (Enfermedad e : enfermedadService.getAll()) {
+                Map<String, Integer> counts = new HashMap<>();
+                counts.put("Curados", e.getCurados());
+                counts.put("Fallecidos", e.getMuertos());
+                counts.put("Enfermos", e.getEnfermosActivos());
+                estadisticas.put(e.getNombreComun(), counts);
+            }
+        }
+        return estadisticas;
+    }
+
+    /**
+     * Returns a list of Persona objects who are contacts of patients infected abroad
+     * and are currently under surveillance.
+     * This is a simplified interpretation. You might need a more specific "isContacto" or "isVigilancia" field.
+     * For this example, it will list patients who had contagioExterior = true and are currently marked as enfermo = true.
+     * A more accurate implementation would depend on how "contacto en vigilancia" is defined in your system.
+     */
+    public List<Persona> getContactosDeEnfermosExterior() {
+        List<Persona> contactos = new ArrayList<>();
+        if (pacienteService != null && pacienteService.getAll() != null) {
+            for (Persona p : pacienteService.getAll()) {
+                if (p instanceof PersonaEnferma) {
+                    PersonaEnferma pe = (PersonaEnferma) p;
+                    // This is a placeholder logic.
+                    // You need to define how to identify a "contacto en vigilancia".
+                    // For example, if they were marked as contagioExterior and are currently enfermo.
+                    // Or if there's a specific field like `pe.isContactoEnVigilancia()`.
+                    if (pe.isContagioExterior() && pe.isEnfermo()) { // Example: if they got sick from abroad
+                        contactos.add(pe);
+                    }
+                }
+            }
+        }
+        return contactos;
+    }
+
+    /**
+     * Returns a map of diseases and their counts for a specific country, month, and year.
+     * The key could be the disease name, and the value the number of cases.
+     * This requires PersonaEnferma to have a fechaContagio (Date) and pais.
+     * Example: {"COVID-19": 5, "Dengue": 2} for "Cuba", month 5, year 2023.
+     */
+    public Map<String, Integer> getEnfermosPorPaisYMes(String pais, int mes, int anio) {
+        Map<String, Integer> enfermosCount = new HashMap<>();
+        if (pacienteService != null && pacienteService.getAll() != null) {
+            Calendar cal = Calendar.getInstance();
+            for (Persona p : pacienteService.getAll()) {
+                if (p instanceof PersonaEnferma) {
+                    PersonaEnferma pe = (PersonaEnferma) p;
+                    if (pe.getPais() != null && pe.getPais().equalsIgnoreCase(pais) && pe.getFechaContagio() != null) {
+                        cal.setTime(pe.getFechaContagio());
+                        int pacienteMes = cal.get(Calendar.MONTH) + 1; // Calendar.MONTH is 0-indexed
+                        int pacienteAnio = cal.get(Calendar.YEAR);
+
+                        if (pacienteMes == mes && pacienteAnio == anio && pe.getEnfermedad() != null) {
+                            String nombreEnfermedad = pe.getEnfermedad().getNombreComun();
+                            enfermosCount.put(nombreEnfermedad, enfermosCount.getOrDefault(nombreEnfermedad, 0) + 1);
+                        }
+                    }
+                }
+            }
+        }
+        return enfermosCount;
+    }
 }

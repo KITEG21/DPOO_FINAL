@@ -107,7 +107,7 @@ private void processMainMenuChoice(int choice) {
         }
         
         for (Persona p : pacientes) {
-            System.out.println("Código: " + p.obtenerCodigo());
+            System.out.println("Codigo: " + p.obtenerCodigo());
             System.out.println("Nombre: " + p.getNombre());
             System.out.println("Apellido: " + p.getApellidos());
             System.out.println("-------------------------");
@@ -116,7 +116,7 @@ private void processMainMenuChoice(int choice) {
 
     private void updatePaciente() {
         System.out.println("\n===== UPDATE PACIENTE =====");
-        String codigo = getStringInput("Enter código del paciente: ");
+        String codigo = getStringInput("Enter codigo del paciente: ");
         
         try {
             Persona paciente = null;
@@ -154,7 +154,7 @@ private void processMainMenuChoice(int choice) {
 
     private void deletePaciente() {
         System.out.println("\n===== DELETE PACIENTE =====");
-        String codigo = getStringInput("Enter código del paciente: ");
+        String codigo = getStringInput("Enter codigo del paciente: ");
         
         try {
             Persona paciente = null;
@@ -233,7 +233,7 @@ private void processMainMenuChoice(int choice) {
         }
         
         for (Enfermedad e : enfermedades) {
-            System.out.println("Código: " + e.obtenerCodigo());
+            System.out.println("Codigo: " + e.obtenerCodigo());
             System.out.println("Nombre: " + e.getNombreComun());
             System.out.println("Tipo: " + e.getViaTransmision());
             System.out.println("-------------------------");
@@ -277,7 +277,7 @@ private void processMainMenuChoice(int choice) {
 
     private void deleteEnfermedad() {
         System.out.println("\n===== DELETE ENFERMEDAD =====");
-        String codigo = getStringInput("Enter código de enfermedad: ");
+        String codigo = getStringInput("Enter codigo de enfermedad: ");
         
         try {
             Enfermedad enfermedad = null;
@@ -509,7 +509,7 @@ private void processMainMenuChoice(int choice) {
     }
 
     private void showCasesByCountryAndMonth() {
-        System.out.println("\n--- Enfermos por País y Mes ---");
+        System.out.println("\n--- Enfermos por Pais y Mes ---");
         
         String pais = getStringInput("Ingrese el pais: ");
         int mes = getIntInput("Ingrese el mes (1-12): ");

@@ -18,9 +18,17 @@ public class PacienteService {
             throw new IllegalArgumentException("Paciente ya registrado");
         }
     }
+    
+    public Persona getByCodigo(String code){
+    	return repo.getByCodigo(code);
+    }
 
     public List<Persona> getAll() {
         return repo.getAll();
+    }
+    
+    public List<Persona> getAllSick(){
+    	return repo.getAllSick();
     }
 
     public void updatePaciente(Persona p) {
