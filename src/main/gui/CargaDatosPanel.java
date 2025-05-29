@@ -14,13 +14,13 @@ public class CargaDatosPanel extends JPanel {
     private Color panelBackgroundColor;
     private Color accentColor;
     private Color textColor;
-    private Color borderColor; // Added borderColor for consistency, though might not be heavily used here
+    private Color borderColor; 
 
     public CargaDatosPanel(Color panelBg, Color accent, Color text, Color border) {
         this.panelBackgroundColor = panelBg;
         this.accentColor = accent;
         this.textColor = text;
-        this.borderColor = border; // Store it
+        this.borderColor = border; 
 
         setLayout(new BorderLayout(10, 10));
         setBackground(panelBackgroundColor);
@@ -29,7 +29,7 @@ public class CargaDatosPanel extends JPanel {
         JPanel topButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         topButtonPanel.setBackground(panelBackgroundColor);
         topButtonPanel.setBorder(BorderFactory.createTitledBorder(
-            new LineBorder(borderColor, 1), // Use borderColor for the title
+            new LineBorder(borderColor, 1), 
             "Operaciones de Datos",
             TitledBorder.DEFAULT_JUSTIFICATION,
             TitledBorder.DEFAULT_POSITION,
@@ -45,17 +45,17 @@ public class CargaDatosPanel extends JPanel {
 
         logArea = new JTextArea(15, 50);
         logArea.setEditable(false);
-        logArea.setFont(new Font("Consolas", Font.PLAIN, 13)); // Monospaced for logs
-        logArea.setBackground(new Color(250, 255, 255)); // Slightly off-white, similar to EstadisticasPanel's JTextArea
+        logArea.setFont(new Font("Consolas", Font.PLAIN, 13)); 
+        logArea.setBackground(new Color(250, 255, 255)); 
         logArea.setForeground(textColor.darker());
-        logArea.setLineWrap(true); // Enable line wrapping
-        logArea.setWrapStyleWord(true); // Wrap at word boundaries
+        logArea.setLineWrap(true); 
+        logArea.setWrapStyleWord(true); 
         logArea.setBorder(new CompoundBorder(
             new LineBorder(borderColor, 1),
             new EmptyBorder(10, 10, 10, 10)
         ));
         JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setBorder(null); // Remove default scrollpane border
+        scrollPane.setBorder(null);
         
         add(scrollPane, BorderLayout.CENTER);
     }

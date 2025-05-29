@@ -15,10 +15,8 @@ public class PersonaEnferma extends Persona {
         super(nombre, apellidos, carnetIdentidad);
     }
     
-    // También puedes añadir un constructor que acepte una Persona existente
     public PersonaEnferma(Persona persona) {
         super(persona.getNombre(), persona.getApellidos(), persona.getCarnetIdentidad());
-        // Copiar otros atributos de Persona si es necesario
         this.setEdad(persona.getEdad());
         this.setSexo(persona.getSexo());
         this.setDireccion(persona.getDireccion());

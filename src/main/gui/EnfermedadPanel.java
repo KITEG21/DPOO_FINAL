@@ -101,7 +101,6 @@ public class EnfermedadPanel extends JPanel {
 
         add(formPanel, BorderLayout.NORTH);
 
-        // Table
         String[] columnNames = {"Codigo", "Nombre Comun", "Via Transmision", "Nombre Cientifico", "Curados", "Muertos", "Activos"};
         tableModel = new DefaultTableModel(columnNames, 0){
             @Override
@@ -156,7 +155,6 @@ public class EnfermedadPanel extends JPanel {
         header.setReorderingAllowed(false);
     }
 
-    // Getters for controller
     public JTextField getCodigoField() { return codigoField; }
     public JTextField getNombreComunField() { return nombreComunField; }
     public JTextField getViaTransmisionField() { return viaTransmisionField; }

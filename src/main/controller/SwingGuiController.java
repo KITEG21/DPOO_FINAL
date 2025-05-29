@@ -13,7 +13,7 @@ import java.awt.event.ActionListener;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.text.SimpleDateFormat; // For date display
+import java.text.SimpleDateFormat; 
 
 public class SwingGuiController {
     private MainFrame mainFrame;
@@ -72,7 +72,6 @@ public class SwingGuiController {
         });
 
 
-        // Enfermedad Panel Listeners
         EnfermedadPanel ep = mainFrame.getEnfermedadPanel();
         ep.getCrearButton().addActionListener(new ActionListener() {
             @Override
@@ -116,7 +115,6 @@ public class SwingGuiController {
             }
         });
         
-        // Carga Datos Panel Listener
         CargaDatosPanel cdp = mainFrame.getCargaDatosPanel();
         cdp.getCargarDatosButton().addActionListener(new ActionListener() {
             @Override
@@ -135,14 +133,13 @@ public class SwingGuiController {
     private void populateEnfermedadComboBox() {
         PacientePanel pp = mainFrame.getPacientePanel();
         pp.getEnfermedadComboBox().removeAllItems();
-        pp.getEnfermedadComboBox().addItem("Ninguna"); // Option for no illness
+        pp.getEnfermedadComboBox().addItem("Ninguna"); 
         List<Enfermedad> enfermedades = enfermedadService.getAll();
         for (Enfermedad enf : enfermedades) {
             pp.getEnfermedadComboBox().addItem(enf.obtenerCodigo() + " - " + enf.getNombreComun());
         }
     }
 
-    // --- Paciente Methods ---
     private void crearPaciente() {
         PacientePanel pp = mainFrame.getPacientePanel();
         try {
@@ -161,8 +158,7 @@ public class SwingGuiController {
             paciente.setPais(pais);
             paciente.setContagioExterior(contagioExterior);
             paciente.setEnfermo(enfermo);
-            // Fecha de contagio y enfermedad se pueden añadir con más campos o lógica
-            // Por ahora, la enfermedad seleccionada:
+
             String selectedEnfermedadItem = (String) pp.getEnfermedadComboBox().getSelectedItem();
             if (selectedEnfermedadItem != null && !selectedEnfermedadItem.equals("Ninguna")) {
                 String enfermedadCodigo = selectedEnfermedadItem.split(" - ")[0];
@@ -310,7 +306,7 @@ public class SwingGuiController {
                         pe.isContagioExterior() ? "Si" : "No",
                         pe.getEnfermedad() != null ? pe.getEnfermedad().getNombreComun() : "N/A"
                 });
-            } else { // Basic Persona if not PersonaEnferma
+            } else { 
                  model.addRow(new Object[]{
                         p.obtenerCodigo(),
                         p.getNombre(),
@@ -318,7 +314,7 @@ public class SwingGuiController {
                         p.getCarnetIdentidad(),
                         p.getEdad(),
                         p.getSexo(),
-                        "N/A", "N/A", "N/A", "N/A" // Default values for PersonaEnferma fields
+                        "N/A", "N/A", "N/A", "N/A" 
                 });
             }
         }
@@ -333,7 +329,7 @@ public class SwingGuiController {
             String nombreCientifico = ep.getNombreCientificoField().getText();
             
             Enfermedad enfermedad = new Enfermedad(nombreComun, viaTransmision, nombreCientifico);
-            // Set curados, muertos, activos
+
             if (!ep.getCuradosField().getText().isEmpty()) enfermedad.setCurados(Integer.parseInt(ep.getCuradosField().getText()));
             if (!ep.getMuertosField().getText().isEmpty()) enfermedad.setMuertos(Integer.parseInt(ep.getMuertosField().getText()));
             if (!ep.getEnfermosActivosField().getText().isEmpty()) enfermedad.setEnfermosActivos(Integer.parseInt(ep.getEnfermosActivosField().getText()));
@@ -341,7 +337,7 @@ public class SwingGuiController {
             enfermedadService.registrarEnfermedad(enfermedad);
             JOptionPane.showMessageDialog(mainFrame, "Enfermedad creada exitosamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
             refreshEnfermedadesTable();
-            populateEnfermedadComboBox(); // Update combobox in PacientePanel
+            populateEnfermedadComboBox(); /
             limpiarCamposEnfermedad();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(mainFrame, "Error en formato de número (Curados, Muertos, Activos).", "Error", JOptionPane.ERROR_MESSAGE);
@@ -451,12 +447,11 @@ public class SwingGuiController {
         }
     }
     
-    // --- Estadisticas Methods ---
     private void mostrarEstadisticaSeleccionada() {
         EstadisticasPanel esp = mainFrame.getEstadisticasPanel();
         String seleccion = (String) esp.getEstadisticaComboBox().getSelectedItem();
         JTextArea area = esp.getResultadoArea();
-        area.setText(""); // Clear previous results
+        area.setText(""); 
 
         switch (seleccion) {
             case "Estadisticas Generales":
@@ -554,22 +549,18 @@ public class SwingGuiController {
                 }
                 break;
             case "Todas las Estadisticas":
-                // This would call multiple methods and append to area. For brevity, I'll skip full impl here.
                 area.append("Mostrando todas las estadisticas (resumido)...\n");
-                // Call individual methods and append their string representations
                 break;
             default:
                 area.append("Seleccion no implementada aun.\n");
         }
     }
 
-    // --- Carga Datos Method ---
     private void cargarDatosDePrueba() {
         CargaDatosPanel cdp = mainFrame.getCargaDatosPanel();
         JTextArea log = cdp.getLogArea();
         log.setText("Cargando datos de prueba...\n");
 
-        // Re-use the logic from ConsoleController's loadTestData
         Enfermedad covid = new Enfermedad("COVID-19", "Respiratoria", "SARS-CoV-2");
         covid.setCurados(120); covid.setMuertos(15); covid.setEnfermosActivos(45);
         enfermedadService.registrarEnfermedad(covid);
@@ -585,7 +576,6 @@ public class SwingGuiController {
         enfermedadService.registrarEnfermedad(influenza);
         log.append("- Enfermedad Influenza registrada.\n");
 
-        // Pacientes (simplified for brevity, add all 10 as in console)
         PersonaEnferma p1 = new PersonaEnferma("Carlos", "Rodriguez", "12345678A");
         p1.setEdad(25); p1.setSexo("M"); p1.setContagioExterior(false); p1.setEnfermo(true);
         p1.setPais("Cuba"); p1.setFechaContagio(new Date(122, 4, 15)); p1.setEnfermedad(covid);
@@ -593,12 +583,11 @@ public class SwingGuiController {
         log.append("- Paciente Carlos Rodriguez registrado.\n");
 
         PersonaEnferma p2 = new PersonaEnferma("Maria", "Gonzalez", "23456789B");
-        p2.setEdad(42); p2.setSexo("F"); p2.setContagioExterior(true); p2.setEnfermo(false); // Example: not sick but had it
+        p2.setEdad(42); p2.setSexo("F"); p2.setContagioExterior(true); p2.setEnfermo(false); 
         p2.setPais("Australia"); p2.setFechaContagio(new Date(122, 5, 20)); p2.setEnfermedad(dengue);
         pacienteService.registrarPaciente(p2);
         log.append("- Paciente Maria Gonzalez registrada.\n");
         
-        // ... (Add other patients from your console controller's loadTestData)
 
         log.append("Datos de prueba cargados exitosamente.\n");
         refreshPacientesTable();

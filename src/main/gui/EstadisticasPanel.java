@@ -11,7 +11,7 @@ public class EstadisticasPanel extends JPanel {
     private JComboBox<String> estadisticaComboBox;
     private JButton mostrarButton;
     private JTextArea resultadoArea;
-    private JPanel chartPanelPlaceholder; // Placeholder for potential future charts or just empty space
+    private JPanel chartPanelPlaceholder; 
 
     private Color panelBackgroundColor;
     private Color accentColor;
@@ -29,7 +29,6 @@ public class EstadisticasPanel extends JPanel {
         setBackground(panelBackgroundColor);
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // Top Panel for selection
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         topPanel.setBackground(panelBackgroundColor);
         topPanel.setBorder(BorderFactory.createTitledBorder(
@@ -66,8 +65,7 @@ public class EstadisticasPanel extends JPanel {
 
         add(topPanel, BorderLayout.NORTH);
 
-        // Results Area
-        resultadoArea = new JTextArea(20, 70); // Give it more rows if it's the only display
+        resultadoArea = new JTextArea(20, 70);
         resultadoArea.setEditable(false);
         resultadoArea.setFont(new Font("Consolas", Font.PLAIN, 13));
         resultadoArea.setBackground(textAreaBgColor);
@@ -84,10 +82,10 @@ public class EstadisticasPanel extends JPanel {
 
         
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollPane, chartPanelPlaceholder);
-        splitPane.setResizeWeight(0.85); // Give more space to text area
+        splitPane.setResizeWeight(0.85); 
         splitPane.setBorder(null);
         splitPane.setDividerSize(8);
-        splitPane.setEnabled(false); // Optionally disable resizing if the bottom panel is static
+        splitPane.setEnabled(false); 
 
         add(splitPane, BorderLayout.CENTER);
     }
@@ -109,9 +107,8 @@ public class EstadisticasPanel extends JPanel {
         ));
     }
 
-    // Getters
     public JComboBox<String> getEstadisticaComboBox() { return estadisticaComboBox; }
     public JButton getMostrarButton() { return mostrarButton; }
     public JTextArea getResultadoArea() { return resultadoArea; }
-    public JPanel getChartPanel() { return chartPanelPlaceholder; } // Returns the JPanel placeholder
+    public JPanel getChartPanel() { return chartPanelPlaceholder; } 
 }

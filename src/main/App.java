@@ -12,14 +12,12 @@ import main.services.EstadisticasService;
 
 public class App {
     public static void main(String[] args) {
-        // Initialize services
     	
     	final PacienteRepository pacienteRepo = new PacienteRepository();
     	final EnfermedadRepository enfermedadRepo = new EnfermedadRepository();
     	
         final PacienteService pacienteService = new PacienteService(pacienteRepo);
         final EnfermedadService enfermedadService = new EnfermedadService(enfermedadRepo);
-        // Pass services to EstadisticasService if it depends on them
         final EstadisticasService estadisticasService = new EstadisticasService(pacienteService, enfermedadService);
 
         SwingUtilities.invokeLater(new Runnable() {

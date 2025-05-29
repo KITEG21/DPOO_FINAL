@@ -12,11 +12,10 @@ public class MainFrame extends JFrame {
     private EstadisticasPanel estadisticasPanel;
     private CargaDatosPanel cargaDatosPanel;
 
-    // Define colors
-    private Color lightCyanBackground = new Color(230, 250, 250); // Lighter for main bg
-    private Color mediumCyanAccent = new Color(0, 170, 170);    // Accent for headers, tabs
+    private Color lightCyanBackground = new Color(230, 250, 250); 
+    private Color mediumCyanAccent = new Color(0, 170, 170);    
     private Color darkCyanText = new Color(0, 80, 80);
-    private Color lightGrayPanelBg = new Color(245, 250, 250); // Very light for panel content areas
+    private Color lightGrayPanelBg = new Color(245, 250, 250); 
     private Color mediumGrayBorder = new Color(190, 200, 200);
     private Color headerTextColor = Color.WHITE;
     private Color tabSelectedTextColor = Color.WHITE;
@@ -27,12 +26,10 @@ public class MainFrame extends JFrame {
         setTitle("CET-POO");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 700);
-        setLocationRelativeTo(null); // Center the window
+        setLocationRelativeTo(null); 
         setLayout(new BorderLayout());
 
-        // Apply custom Look and Feel settings if desired, or use system default
         try {
-            // Using Nimbus for a more modern base, then customizing
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
                     UIManager.setLookAndFeel(info.getClassName());
@@ -40,7 +37,6 @@ public class MainFrame extends JFrame {
                 }
             }
         } catch (Exception e) {
-            // If Nimbus is not available, fall back to system L&F
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception ex) {
@@ -48,13 +44,12 @@ public class MainFrame extends JFrame {
             }
         }
         
-        // Overall frame background
         getContentPane().setBackground(lightCyanBackground);
         ((JComponent) getContentPane()).setBorder(new EmptyBorder(5, 5, 5, 5));
 
 
         // Header Panel
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER)); // Centered title
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER)); 
         headerPanel.setBackground(mediumCyanAccent);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         JLabel titleLabel = new JLabel("Sistema de Gestion Medica Avanzado (CET-POO)");
@@ -78,19 +73,16 @@ public class MainFrame extends JFrame {
         cargaDatosPanel = new CargaDatosPanel(lightGrayPanelBg, mediumCyanAccent, darkCyanText, mediumGrayBorder);
         tabbedPane.addTab("Cargar Datos de Prueba", cargaDatosPanel);
 
-        // Set tab colors (might be overridden by L&F)
         for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-            tabbedPane.setBackgroundAt(i, lightCyanBackground); // Unselected tab background
-            tabbedPane.setForegroundAt(i, tabUnselectedTextColor);   // Unselected tab text
+            tabbedPane.setBackgroundAt(i, lightCyanBackground); 
+            tabbedPane.setForegroundAt(i, tabUnselectedTextColor);  
         }
-        // Selected tab color is harder to set directly without UIManager or custom TabbedPaneUI
-        // We can try setting the component's background if the tab contains it directly.
 
         add(tabbedPane, BorderLayout.CENTER);
 
         // Status Bar
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        statusPanel.setBackground(mediumCyanAccent.darker()); // Slightly darker accent
+        statusPanel.setBackground(mediumCyanAccent.darker()); 
         statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         JLabel statusLabel = new JLabel("Copyright 2025.");
         statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -99,7 +91,6 @@ public class MainFrame extends JFrame {
         add(statusPanel, BorderLayout.SOUTH);
     }
 
-    // Getters for panels so the controller can access them
     public PacientePanel getPacientePanel() {
         return pacientePanel;
     }

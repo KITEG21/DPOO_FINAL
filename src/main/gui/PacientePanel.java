@@ -45,12 +45,12 @@ public class PacientePanel extends JPanel {
         this.borderColor = border;
 
         setLayout(new BorderLayout(10, 10));
-        setBackground(panelBackgroundColor); // Use the passed background color
+        setBackground(panelBackgroundColor);
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         // Form Panel
         JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(panelBackgroundColor); // Form panel background
+        formPanel.setBackground(panelBackgroundColor); 
         formPanel.setBorder(BorderFactory.createTitledBorder(
                 new LineBorder(borderColor, 1),
                 "Datos del Paciente",
@@ -61,7 +61,7 @@ public class PacientePanel extends JPanel {
         ));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(8, 8, 8, 8); // Increased insets
+        gbc.insets = new Insets(8, 8, 8, 8); 
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         // Styling JLabels
@@ -101,8 +101,8 @@ public class PacientePanel extends JPanel {
         buttonPanel.setBackground(panelBackgroundColor);
         crearButton = new JButton("Crear Paciente"); styleButton(crearButton);
         actualizarButton = new JButton("Actualizar Datos"); styleButton(actualizarButton);
-        eliminarButton = new JButton("Eliminar Paciente"); styleButton(eliminarButton, new Color(220,90,90)); // Reddish for delete
-        limpiarButton = new JButton("Limpiar Campos"); styleButton(limpiarButton, new Color(150,150,150)); // Gray for clear
+        eliminarButton = new JButton("Eliminar Paciente"); styleButton(eliminarButton, new Color(220,90,90)); 
+        limpiarButton = new JButton("Limpiar Campos"); styleButton(limpiarButton, new Color(150,150,150)); 
 
         buttonPanel.add(crearButton);
         buttonPanel.add(actualizarButton);
@@ -117,7 +117,7 @@ public class PacientePanel extends JPanel {
         // Table
         String[] columnNames = {"Codigo", "Nombre", "Apellido", "Documento", "Edad", "Sexo", "Pais", "Enfermo", "Extranjero", "Enfermedad"};
         tableModel = new DefaultTableModel(columnNames, 0){
-            @Override //Non-editable cells
+            @Override 
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
@@ -127,7 +127,7 @@ public class PacientePanel extends JPanel {
         
         JScrollPane scrollPane = new JScrollPane(pacienteTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(borderColor, 1));
-        scrollPane.getViewport().setBackground(Color.WHITE); // Background for the viewport behind the table
+        scrollPane.getViewport().setBackground(Color.WHITE);
         add(scrollPane, BorderLayout.CENTER);
     }
 
@@ -142,12 +142,11 @@ public class PacientePanel extends JPanel {
         comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         comboBox.setBackground(Color.WHITE);
         comboBox.setForeground(textColor);
-        // For Nimbus, arrow button color might need UIManager properties
     }
 
     private void styleCheckBox(JCheckBox checkBox) {
         checkBox.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        checkBox.setBackground(panelBackgroundColor); // Match panel background
+        checkBox.setBackground(panelBackgroundColor);
         checkBox.setForeground(textColor);
     }
 
@@ -164,7 +163,6 @@ public class PacientePanel extends JPanel {
             new LineBorder(bgColor.darker(), 1), 
             new EmptyBorder(8, 18, 8, 18)
         ));
-        // Optional: Add hover effects if desired (requires MouseListener)
     }
 
     private void styleTable(JTable table) {
@@ -184,7 +182,6 @@ public class PacientePanel extends JPanel {
     }
 
 
-    // Getters for controller (no changes needed here)
     public JTextField getCodigoField() { return codigoField; }
     public JTextField getNombreField() { return nombreField; }
     public JTextField getApellidoField() { return apellidoField; }
