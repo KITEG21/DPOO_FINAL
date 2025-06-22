@@ -54,7 +54,6 @@ public class EstadisticasPanel extends JPanel {
                 "Estadisticas por Enfermedad (curados/fallecidos/enfermos)",
                 "Contactos de Enfermos en el Exterior",
                 "Enfermos por Pais y Mes (requiere input)",
-                "Todas las Estadisticas"
         });
         styleComboBox(estadisticaComboBox);
         topPanel.add(estadisticaComboBox);

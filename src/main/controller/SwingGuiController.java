@@ -1,6 +1,7 @@
 package main.controller;
 
 import main.gui.*;
+import main.helpers.ValidationUtils;
 import main.models.*;
 import main.services.*;
 
@@ -8,6 +9,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Date;
@@ -85,12 +87,7 @@ public class SwingGuiController {
                 actualizarEnfermedad();
             }
         });
-        ep.getEliminarButton().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                eliminarEnfermedad();
-            }
-        });
+
         ep.getLimpiarButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -140,44 +137,50 @@ public class SwingGuiController {
         }
     }
 
-    private void crearPaciente() {
+   private void crearPaciente() {
+    try {
         PacientePanel pp = mainFrame.getPacientePanel();
-        try {
-            String nombre = pp.getNombreField().getText();
-            String apellido = pp.getApellidoField().getText();
-            String documento = pp.getDocumentoField().getText();
-            int edad = Integer.parseInt(pp.getEdadField().getText());
-            String sexo = (String) pp.getSexoComboBox().getSelectedItem();
-            String pais = pp.getPaisField().getText();
-            boolean contagioExterior = pp.getContagioExteriorCheckBox().isSelected();
-            boolean enfermo = pp.getEnfermoCheckBox().isSelected();
-            
-            PersonaEnferma paciente = new PersonaEnferma(nombre, apellido, documento);
-            paciente.setEdad(edad);
-            paciente.setSexo(sexo);
-            paciente.setPais(pais);
-            paciente.setContagioExterior(contagioExterior);
-            paciente.setEnfermo(enfermo);
+        
+        String nombre = pp.getNombreField().getText().trim();
+        String apellido = pp.getApellidoField().getText().trim();
+        String documento = pp.getDocumentoField().getText().trim();
+        String edadStr = pp.getEdadField().getText().trim();
+        String pais = pp.getPaisField().getText().trim();
+        
+        ValidationUtils.validarNombre(nombre);
+        ValidationUtils.validarApellido(apellido);
+        ValidationUtils.validarDocumento(documento);
+        int edad = ValidationUtils.validarEdad(edadStr);
+        ValidationUtils.validarCampoObligatorio(pais, "Pais");
 
-            String selectedEnfermedadItem = (String) pp.getEnfermedadComboBox().getSelectedItem();
-            if (selectedEnfermedadItem != null && !selectedEnfermedadItem.equals("Ninguna")) {
-                String enfermedadCodigo = selectedEnfermedadItem.split(" - ")[0];
-                Enfermedad enfermedadAsignada = enfermedadService.getByCodigo(enfermedadCodigo);
-                if (enfermedadAsignada != null) {
-                    paciente.setEnfermedad(enfermedadAsignada);
-                }
+        PersonaEnferma nuevoPaciente = new PersonaEnferma(nombre, apellido, documento);
+        nuevoPaciente.setEdad(edad);
+        nuevoPaciente.setSexo((String) pp.getSexoComboBox().getSelectedItem());
+        nuevoPaciente.setPais(pais);
+        nuevoPaciente.setEnfermo(pp.getEnfermoCheckBox().isSelected());
+        nuevoPaciente.setContagioExterior(pp.getContagioExteriorCheckBox().isSelected());
+        
+        String enfermedadSeleccionada = (String) pp.getEnfermedadComboBox().getSelectedItem();
+        if (enfermedadSeleccionada != null && !enfermedadSeleccionada.isEmpty() && 
+            !enfermedadSeleccionada.equals("Ninguna") && !enfermedadSeleccionada.equals("Seleccione...")) {
+            Enfermedad enfermedad = enfermedadService.getByCodigo(enfermedadSeleccionada);
+            if (enfermedad != null) {
+                nuevoPaciente.setEnfermedad(enfermedad);
             }
-
-            pacienteService.registrarPaciente(paciente);
-            JOptionPane.showMessageDialog(mainFrame, "Paciente creado exitosamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
-            refreshPacientesTable();
-            limpiarCamposPaciente();
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(mainFrame, "Error en formato de numero (Edad).", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(mainFrame, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
-    }
+        
+        pacienteService.registrarPaciente(nuevoPaciente);
+        
+        refreshPacientesTable();
+        populateEnfermedadComboBox();
+        limpiarCamposPaciente();
+        
+        ValidationUtils.mostrarExito("Paciente registrado exitosamente.", mainFrame);
+        
+    } catch (Exception e) {
+        ValidationUtils.mostrarError(e.getMessage(), mainFrame);
+   }
+}
     
     private void actualizarPaciente() {
         PacientePanel pp = mainFrame.getPacientePanel();
@@ -289,9 +292,11 @@ public class SwingGuiController {
     private void refreshPacientesTable() {
         PacientePanel pp = mainFrame.getPacientePanel();
         DefaultTableModel model = pp.getTableModel();
-        model.setRowCount(0); // Clear existing data
+        model.setRowCount(0);
+
         List<Persona> pacientes = pacienteService.getAll();
         for (Persona p : pacientes) {
+
             if (p instanceof PersonaEnferma) {
                 PersonaEnferma pe = (PersonaEnferma) p;
                 model.addRow(new Object[]{
@@ -337,7 +342,7 @@ public class SwingGuiController {
             enfermedadService.registrarEnfermedad(enfermedad);
             JOptionPane.showMessageDialog(mainFrame, "Enfermedad creada exitosamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
             refreshEnfermedadesTable();
-            populateEnfermedadComboBox(); /
+            populateEnfermedadComboBox(); 
             limpiarCamposEnfermedad();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(mainFrame, "Error en formato de número (Curados, Muertos, Activos).", "Error", JOptionPane.ERROR_MESSAGE);
@@ -548,9 +553,6 @@ public class SwingGuiController {
                     JOptionPane.showMessageDialog(mainFrame, "Mes o año invalido.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
                 break;
-            case "Todas las Estadisticas":
-                area.append("Mostrando todas las estadisticas (resumido)...\n");
-                break;
             default:
                 area.append("Seleccion no implementada aun.\n");
         }
@@ -560,6 +562,13 @@ public class SwingGuiController {
         CargaDatosPanel cdp = mainFrame.getCargaDatosPanel();
         JTextArea log = cdp.getLogArea();
         log.setText("Cargando datos de prueba...\n");
+
+        // Verifica si ya existen enfermedades o pacientes
+        if (!enfermedadService.getAll().isEmpty() || !pacienteService.getAll().isEmpty()) {
+            log.append("Ya existen datos cargados. No se cargaron datos de prueba.\n");
+            JOptionPane.showMessageDialog(mainFrame, "Ya existen datos cargados. No se cargaron datos de prueba.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
         Enfermedad covid = new Enfermedad("COVID-19", "Respiratoria", "SARS-CoV-2");
         covid.setCurados(120); covid.setMuertos(15); covid.setEnfermosActivos(45);
@@ -588,7 +597,6 @@ public class SwingGuiController {
         pacienteService.registrarPaciente(p2);
         log.append("- Paciente Maria Gonzalez registrada.\n");
         
-
         log.append("Datos de prueba cargados exitosamente.\n");
         refreshPacientesTable();
         refreshEnfermedadesTable();

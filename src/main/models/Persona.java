@@ -12,9 +12,9 @@ public class Persona implements Codificador {
 	private String carnetIdentidad;
 	
 	// Constructor
-	public Persona(String nombre, String apellidos, int edad, String sexo, String direccion, String carnetIdentidad){
+	public Persona(String nombre, String apellido, int edad, String sexo, String direccion, String carnetIdentidad){
 		setNombre(nombre);
-		setApellidos(apellidos);
+		setApellidos(apellido);
 		setEdad(edad);
 		setSexo(sexo);
 		setDireccion(direccion);
@@ -22,7 +22,7 @@ public class Persona implements Codificador {
 	}
 	public Persona(String nombre, String apellido, String carnetIdentidad) {
 		setNombre(nombre);
-		setApellidos(apellidos);
+		setApellidos(apellido);
 		setCarnetIdentidad(carnetIdentidad);
 
     }

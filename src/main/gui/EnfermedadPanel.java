@@ -22,7 +22,6 @@ public class EnfermedadPanel extends JPanel {
     // Buttons
     private JButton crearButton;
     private JButton actualizarButton;
-    private JButton eliminarButton;
     private JButton limpiarButton;
 
     // Table
@@ -88,12 +87,10 @@ public class EnfermedadPanel extends JPanel {
         buttonPanel.setBackground(panelBackgroundColor);
         crearButton = new JButton("Registrar Enfermedad"); styleButton(crearButton);
         actualizarButton = new JButton("Actualizar Informacion"); styleButton(actualizarButton);
-        eliminarButton = new JButton("Eliminar Enfermedad"); styleButton(eliminarButton, new Color(220,90,90)); // Reddish
         limpiarButton = new JButton("Limpiar Formulario"); styleButton(limpiarButton, new Color(150,150,150)); // Gray
 
         buttonPanel.add(crearButton);
         buttonPanel.add(actualizarButton);
-        buttonPanel.add(eliminarButton);
         buttonPanel.add(limpiarButton);
         
         gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 3; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.anchor = GridBagConstraints.CENTER;
@@ -164,7 +161,6 @@ public class EnfermedadPanel extends JPanel {
     public JTextField getEnfermosActivosField() { return enfermosActivosField; }
     public JButton getCrearButton() { return crearButton; }
     public JButton getActualizarButton() { return actualizarButton; }
-    public JButton getEliminarButton() { return eliminarButton; }
     public JButton getLimpiarButton() { return limpiarButton; }
     public JTable getEnfermedadTable() { return enfermedadTable; }
     public DefaultTableModel getTableModel() { return tableModel; }
