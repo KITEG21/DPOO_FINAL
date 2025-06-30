@@ -25,9 +25,10 @@ public class MainFrame extends JFrame {
     public MainFrame() {
         setTitle("CET-POO");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1000, 700);
+        setSize(1200, 860);
         setLocationRelativeTo(null); 
         setLayout(new BorderLayout());
+        setResizable(false);
 
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -48,7 +49,6 @@ public class MainFrame extends JFrame {
         ((JComponent) getContentPane()).setBorder(new EmptyBorder(5, 5, 5, 5));
 
 
-        // Header Panel
         JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER)); 
         headerPanel.setBackground(mediumCyanAccent);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
@@ -80,7 +80,6 @@ public class MainFrame extends JFrame {
 
         add(tabbedPane, BorderLayout.CENTER);
 
-        // Status Bar
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         statusPanel.setBackground(mediumCyanAccent.darker()); 
         statusPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));

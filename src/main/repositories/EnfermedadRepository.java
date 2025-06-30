@@ -12,13 +12,17 @@ public class EnfermedadRepository {
         return enfermedad;
     }
 
-    public Enfermedad getByCodigo(String codigo) {
-        for (Enfermedad e : enfermedades) {
+     public Enfermedad getByCodigo(String codigo) {
+        Enfermedad encontrada = null;
+        int i = 0;
+        while (encontrada == null && i < enfermedades.size()) {
+            Enfermedad e = enfermedades.get(i);
             if (e.obtenerCodigo().equals(codigo)) {
-                return e;
+                encontrada = e;
             }
+            i++;
         }
-        return null;
+        return encontrada;
     }
 
     public List<Enfermedad> getAll() {
@@ -26,22 +30,29 @@ public class EnfermedadRepository {
     }
 
     public boolean update(Enfermedad enfermedad) {
-        for (int i = 0; i < enfermedades.size(); i++) {
+        boolean actualizada = false;
+        int i = 0;
+        while (!actualizada && i < enfermedades.size()) {
             if (enfermedades.get(i).obtenerCodigo().equals(enfermedad.obtenerCodigo())) {
                 enfermedades.set(i, enfermedad);
-                return true;
+                actualizada = true;
             }
+            i++;
         }
-        return false;
+        return actualizada;
     }
 
     public boolean delete(String codigo) {
-        for (int i = 0; i < enfermedades.size(); i++) {
+        boolean eliminada = false;
+        int i = 0;
+        while (!eliminada && i < enfermedades.size()) {
             if (enfermedades.get(i).obtenerCodigo().equals(codigo)) {
                 enfermedades.remove(i);
-                return true;
+                eliminada = true;
+            } else {
+                i++;
             }
         }
-        return false;
+        return eliminada;
     }
 }

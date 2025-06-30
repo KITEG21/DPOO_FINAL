@@ -23,35 +23,49 @@ public class EstadisticasService {
     }
 
 
-    public int getTotalPacientes() {
-        if (pacienteService == null || pacienteService.getAll() == null) {
-            return 0;
+     public int getTotalPacientes() {
+        int total = 0;
+        if (pacienteService != null && pacienteService.getAll() != null) {
+            total = pacienteService.getAll().size();
         }
-        return pacienteService.getAll().size();
+        return total;
+    }
+
+    public int getPacientesEnfermos() {
+        int count = 0;
+        if (pacienteService != null && pacienteService.getAll() != null) {
+            for (Persona p : pacienteService.getAll()) {
+                if (p instanceof PersonaEnferma) {
+                    PersonaEnferma pe = (PersonaEnferma) p;
+                    if (pe.isEnfermo()) {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
     }
 
 
     public int getTotalEnfermedades() {
-        if (enfermedadService == null || enfermedadService.getAll() == null) {
-            return 0;
+        int total = 0;
+        if (enfermedadService != null && enfermedadService.getAll() != null) {
+            total = enfermedadService.getAll().size();
         }
-        return enfermedadService.getAll().size();
+        return total;
     }
 
     public Map<String, Integer> getPacientesPorSexo() {
         Map<String, Integer> porSexo = new HashMap<>();
         porSexo.put("Masculino", 0);
         porSexo.put("Femenino", 0);
-        porSexo.put("Otro", 0); 
         if (pacienteService != null && pacienteService.getAll() != null) {
             for (Persona p : pacienteService.getAll()) {
-                String sexo = p.getSexo(); // Assuming getSexo() returns "M", "F", or other
+                String sexo = p.getSexo();
                 if ("M".equalsIgnoreCase(sexo) || "Masculino".equalsIgnoreCase(sexo)) {
                     porSexo.put("Masculino", porSexo.get("Masculino") + 1);
                 } else if ("F".equalsIgnoreCase(sexo) || "Femenino".equalsIgnoreCase(sexo)) {
                     porSexo.put("Femenino", porSexo.get("Femenino") + 1);
-                } else {
-                    porSexo.put("Otro", porSexo.get("Otro") + 1);
                 }
             }
         }
@@ -62,7 +76,7 @@ public class EstadisticasService {
         Map<String, Integer> porTipo = new HashMap<>();
         if (enfermedadService != null && enfermedadService.getAll() != null) {
             for (Enfermedad e : enfermedadService.getAll()) {
-                String tipo = e.getViaTransmision(); // Assuming this is the field for type
+                String tipo = e.getViaTransmision();
                 porTipo.put(tipo, porTipo.getOrDefault(tipo, 0) + 1);
             }
         }
@@ -97,7 +111,6 @@ public class EstadisticasService {
             Map<String, Integer> sexoMap = new HashMap<>();
             sexoMap.put("Masculino", 0);
             sexoMap.put("Femenino", 0);
-            sexoMap.put("Otro", 0);
             casos.put(rango, sexoMap);
         }
 
@@ -117,8 +130,6 @@ public class EstadisticasService {
                     sexoMap.put("Masculino", sexoMap.get("Masculino") + 1);
                 } else if ("F".equalsIgnoreCase(sexo) || "Femenino".equalsIgnoreCase(sexo)) {
                     sexoMap.put("Femenino", sexoMap.get("Femenino") + 1);
-                } else {
-                    sexoMap.put("Otro", sexoMap.get("Otro") + 1);
                 }
             }
         }
@@ -146,10 +157,6 @@ public class EstadisticasService {
             for (Persona p : pacienteService.getAll()) {
                 if (p instanceof PersonaEnferma) {
                     PersonaEnferma pe = (PersonaEnferma) p;
-                    // TODO
-                    // I need to define how to identify a "contacto en vigilancia".
-                    // For example, if they were marked as contagioExterior and are currently enfermo.
-                    // Or if there's a specific field like `pe.isContactoEnVigilancia()`.
                     if (pe.isContagioExterior() && pe.isEnfermo()) {
                         contactos.add(pe);
                     }

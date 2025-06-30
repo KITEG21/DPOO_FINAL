@@ -71,7 +71,7 @@ public class CargaDatosPanel extends JPanel {
         ));
     }
 
-    // Getters
+    
     public JButton getCargarDatosButton() { return cargarDatosButton; }
     public JTextArea getLogArea() { return logArea; }
 }

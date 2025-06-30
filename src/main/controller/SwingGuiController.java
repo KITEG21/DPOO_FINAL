@@ -12,6 +12,7 @@ import javax.swing.table.DefaultTableModel;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,6 @@ public class SwingGuiController {
     }
 
     private void attachListeners() {
-        // Paciente Panel Listeners
         PacientePanel pp = mainFrame.getPacientePanel();
         pp.getCrearButton().addActionListener(new ActionListener() {
             @Override
@@ -49,7 +49,11 @@ public class SwingGuiController {
         pp.getActualizarButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                actualizarPaciente();
+                try {
+					actualizarPaciente();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
             }
         });
         pp.getEliminarButton().addActionListener(new ActionListener() {
@@ -78,7 +82,12 @@ public class SwingGuiController {
         ep.getCrearButton().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                crearEnfermedad();
+                try {
+					crearEnfermedad();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
             }
         });
          ep.getActualizarButton().addActionListener(new ActionListener() {
@@ -103,7 +112,6 @@ public class SwingGuiController {
             }
         });
 
-        // Estadisticas Panel Listeners
         EstadisticasPanel esp = mainFrame.getEstadisticasPanel();
         esp.getMostrarButton().addActionListener(new ActionListener() {
             @Override
@@ -146,6 +154,10 @@ public class SwingGuiController {
         String documento = pp.getDocumentoField().getText().trim();
         String edadStr = pp.getEdadField().getText().trim();
         String pais = pp.getPaisField().getText().trim();
+        String fechaContagioStr = pp.getFechaContagioField().getText().trim();
+        Date fechaContagio = validarFecha(fechaContagioStr);
+
+        
         
         ValidationUtils.validarNombre(nombre);
         ValidationUtils.validarApellido(apellido);
@@ -159,11 +171,25 @@ public class SwingGuiController {
         nuevoPaciente.setPais(pais);
         nuevoPaciente.setEnfermo(pp.getEnfermoCheckBox().isSelected());
         nuevoPaciente.setContagioExterior(pp.getContagioExteriorCheckBox().isSelected());
+        nuevoPaciente.setFechaContagio(fechaContagio);
         
+        if (nuevoPaciente.isEnfermo()) {
+            String contactosStr = pp.getContactosArea().getText().trim();
+            List<PersonaContacto> contactos = parseContactos(contactosStr);
+            nuevoPaciente.setContactos(contactos);
+        }
+
+        if (nuevoPaciente.isContagioExterior()) {
+            String paisesVisitadosStr = pp.getPaisesVisitadosArea().getText().trim();
+            List<VisitaPais> paisesVisitados = parsePaisesVisitados(paisesVisitadosStr);
+            nuevoPaciente.setPaisesVisitados(paisesVisitados);
+        }
+
         String enfermedadSeleccionada = (String) pp.getEnfermedadComboBox().getSelectedItem();
         if (enfermedadSeleccionada != null && !enfermedadSeleccionada.isEmpty() && 
             !enfermedadSeleccionada.equals("Ninguna") && !enfermedadSeleccionada.equals("Seleccione...")) {
-            Enfermedad enfermedad = enfermedadService.getByCodigo(enfermedadSeleccionada);
+            String enfermedadCodigo = enfermedadSeleccionada.split(" - ")[0];
+            Enfermedad enfermedad = enfermedadService.getByCodigo(enfermedadCodigo);
             if (enfermedad != null) {
                 nuevoPaciente.setEnfermedad(enfermedad);
             }
@@ -182,46 +208,81 @@ public class SwingGuiController {
    }
 }
     
-    private void actualizarPaciente() {
+    private void actualizarPaciente() throws Exception {
         PacientePanel pp = mainFrame.getPacientePanel();
         String codigo = pp.getCodigoField().getText();
+        String mensaje = "";
+        boolean actualizado = false;
+        
         if (codigo.isEmpty()) {
-            JOptionPane.showMessageDialog(mainFrame, "Ingrese el codigo del paciente a actualizar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        Persona pacienteExistente = pacienteService.getByCodigo(codigo);
-        if (pacienteExistente == null || !(pacienteExistente instanceof PersonaEnferma)) {
-            JOptionPane.showMessageDialog(mainFrame, "Paciente no encontrado o tipo incorrecto.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        PersonaEnferma paciente = (PersonaEnferma) pacienteExistente;
-        try {
-            paciente.setNombre(pp.getNombreField().getText());
-            paciente.setApellidos(pp.getApellidoField().getText());
-            paciente.setCarnetIdentidad(pp.getDocumentoField().getText());
-            paciente.setEdad(Integer.parseInt(pp.getEdadField().getText()));
-            paciente.setSexo((String) pp.getSexoComboBox().getSelectedItem());
-            paciente.setPais(pp.getPaisField().getText());
-            paciente.setContagioExterior(pp.getContagioExteriorCheckBox().isSelected());
-            paciente.setEnfermo(pp.getEnfermoCheckBox().isSelected());
-
-            String selectedEnfermedadItem = (String) pp.getEnfermedadComboBox().getSelectedItem();
-            if (selectedEnfermedadItem != null && !selectedEnfermedadItem.equals("Ninguna")) {
-                String enfermedadCodigo = selectedEnfermedadItem.split(" - ")[0];
-                Enfermedad enfermedadAsignada = enfermedadService.getByCodigo(enfermedadCodigo);
-                paciente.setEnfermedad(enfermedadAsignada);
+            mensaje = "Ingrese el codigo del paciente a actualizar.";
+        } else {
+            Persona pacienteExistente = pacienteService.getByCodigo(codigo);
+            if (pacienteExistente == null || !(pacienteExistente instanceof PersonaEnferma)) {
+                mensaje = "Paciente no encontrado o tipo incorrecto.";
             } else {
-                paciente.setEnfermedad(null);
-            }
+                PersonaEnferma paciente = (PersonaEnferma) pacienteExistente;
+                try {
+                    String nombre = pp.getNombreField().getText().trim();
+                    String apellido = pp.getApellidoField().getText().trim();
+                    String documento = pp.getDocumentoField().getText().trim();
+                    String edadStr = pp.getEdadField().getText().trim();
+                    String pais = pp.getPaisField().getText().trim();
+                    String fechaContagioStr = pp.getFechaContagioField().getText().trim();
+                    Date fechaContagio = validarFecha(fechaContagioStr);
 
-            pacienteService.updatePaciente(paciente);
-            JOptionPane.showMessageDialog(mainFrame, "Paciente actualizado exitosamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
+                    ValidationUtils.validarNombre(nombre);
+                    ValidationUtils.validarApellido(apellido);
+                    ValidationUtils.validarDocumento(documento);
+                    int edad = ValidationUtils.validarEdad(edadStr);
+                    ValidationUtils.validarCampoObligatorio(pais, "Pais");
+
+                    paciente.setNombre(nombre);
+                    paciente.setApellidos(apellido);
+                    paciente.setCarnetIdentidad(documento);
+                    paciente.setEdad(edad);
+                    paciente.setPais(pais);
+                    paciente.setContagioExterior(pp.getContagioExteriorCheckBox().isSelected());
+                    paciente.setEnfermo(pp.getEnfermoCheckBox().isSelected());
+                    paciente.setFechaContagio(fechaContagio);
+
+                    if (paciente.isContagioExterior()) {
+                        String paisesVisitadosStr = pp.getPaisesVisitadosArea().getText().trim();
+                        List<VisitaPais> paisesVisitados = parsePaisesVisitados(paisesVisitadosStr);
+                        paciente.setPaisesVisitados(paisesVisitados);
+                    } else {
+                        paciente.limpiarPaisesVisitados();
+                    }
+
+                    String selectedEnfermedadItem = (String) pp.getEnfermedadComboBox().getSelectedItem();
+                    if (selectedEnfermedadItem != null && !selectedEnfermedadItem.equals("Ninguna")) {
+                        String enfermedadCodigo = selectedEnfermedadItem.split(" - ")[0];
+                        Enfermedad enfermedadAsignada = enfermedadService.getByCodigo(enfermedadCodigo);
+                        paciente.setEnfermedad(enfermedadAsignada);
+                    } else {
+                        paciente.setEnfermedad(null);
+                    }
+
+                    pacienteService.updatePaciente(paciente);
+                    mensaje = "Paciente actualizado exitosamente.";
+                    actualizado = true;
+                    
+                } catch (NumberFormatException ex) {
+                    mensaje = "Error en formato de número (Edad).";
+                } catch (IllegalArgumentException ex) {
+                    mensaje = "Error: " + ex.getMessage();
+                } catch (Exception e) {
+                    mensaje = "Error: " + e.getMessage();
+                }
+            }
+        }
+        
+        if (actualizado) {
+            JOptionPane.showMessageDialog(mainFrame, mensaje, "Éxito", JOptionPane.INFORMATION_MESSAGE);
             refreshPacientesTable();
             limpiarCamposPaciente();
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(mainFrame, "Error en formato de número (Edad).", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(mainFrame, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(mainFrame, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -263,6 +324,33 @@ public class SwingGuiController {
                 pp.getContagioExteriorCheckBox().setSelected(paciente.isContagioExterior());
                 pp.getEnfermoCheckBox().setSelected(paciente.isEnfermo());
 
+             if (paciente.getFechaContagio() != null) {
+                    pp.getFechaContagioField().setText(dateFormat.format(paciente.getFechaContagio()));
+                } else {
+                    pp.getFechaContagioField().setText("");
+                }
+
+                boolean esEnfermo = paciente.isEnfermo();
+                pp.getContactosLabel().setVisible(esEnfermo);
+        pp.getContactosScrollPane().setVisible(esEnfermo);
+
+        if (esEnfermo && paciente.getContactos() != null) {
+            pp.getContactosArea().setText(formatContactos(paciente.getContactos()));
+        } else {
+            pp.getContactosArea().setText("");
+        }
+
+
+                boolean esContagioExterior = paciente.isContagioExterior();
+                pp.getPaisesVisitadosLabel().setVisible(esContagioExterior);
+                pp.getPaisesVisitadosScrollPane().setVisible(esContagioExterior);
+
+                if (esContagioExterior && paciente.getPaisesVisitados() != null) {
+                    pp.getPaisesVisitadosArea().setText(formatPaisesVisitados(paciente.getPaisesVisitados()));
+                } else {
+                    pp.getPaisesVisitadosArea().setText("");
+                }
+
                 if (paciente.getEnfermedad() != null) {
                     String enfermedadItem = paciente.getEnfermedad().obtenerCodigo() + " - " + paciente.getEnfermedad().getNombreComun();
                     pp.getEnfermedadComboBox().setSelectedItem(enfermedadItem);
@@ -286,6 +374,9 @@ public class SwingGuiController {
         pp.getContagioExteriorCheckBox().setSelected(false);
         pp.getEnfermoCheckBox().setSelected(false);
         pp.getEnfermedadComboBox().setSelectedItem("Ninguna");
+        pp.getPaisesVisitadosArea().setText("");
+        pp.getPaisesVisitadosLabel().setVisible(false);
+        pp.getPaisesVisitadosScrollPane().setVisible(false);
         pp.getPacienteTable().clearSelection();
     }
 
@@ -307,6 +398,7 @@ public class SwingGuiController {
                         pe.getEdad(),
                         pe.getSexo(),
                         pe.getPais(),
+                        pe.getFechaContagio() != null ? dateFormat.format(pe.getFechaContagio()) : "N/A",
                         pe.isEnfermo() ? "Si" : "No",
                         pe.isContagioExterior() ? "Si" : "No",
                         pe.getEnfermedad() != null ? pe.getEnfermedad().getNombreComun() : "N/A"
@@ -319,7 +411,7 @@ public class SwingGuiController {
                         p.getCarnetIdentidad(),
                         p.getEdad(),
                         p.getSexo(),
-                        "N/A", "N/A", "N/A", "N/A" 
+                        "N/A", "N/A", "N/A", "N/A", "N/A" 
                 });
             }
         }
@@ -332,77 +424,83 @@ public class SwingGuiController {
             String nombreComun = ep.getNombreComunField().getText();
             String viaTransmision = ep.getViaTransmisionField().getText();
             String nombreCientifico = ep.getNombreCientificoField().getText();
-            
-            Enfermedad enfermedad = new Enfermedad(nombreComun, viaTransmision, nombreCientifico);
+            String muertosStr = ep.getMuertosField().getText();
+            String curadosStr = ep.getCuradosField().getText();
+            String enfermosActivosStr = ep.getEnfermosActivosField().getText();
 
-            if (!ep.getCuradosField().getText().isEmpty()) enfermedad.setCurados(Integer.parseInt(ep.getCuradosField().getText()));
-            if (!ep.getMuertosField().getText().isEmpty()) enfermedad.setMuertos(Integer.parseInt(ep.getMuertosField().getText()));
-            if (!ep.getEnfermosActivosField().getText().isEmpty()) enfermedad.setEnfermosActivos(Integer.parseInt(ep.getEnfermosActivosField().getText()));
+            
+            ValidationUtils.validarNombre(nombreComun);
+            ValidationUtils.validarNombre(nombreCientifico);
+            int cantMuertos = ValidationUtils.validarNumeroEntero(muertosStr, "Muertos");
+            int cantCurados = ValidationUtils.validarNumeroEntero(curadosStr, "Curados");
+            int cantEnfermos = ValidationUtils.validarNumeroEntero(enfermosActivosStr, "Enfermos Activos");
+            
+
+            Enfermedad enfermedad = new Enfermedad(nombreComun, nombreCientifico, viaTransmision, cantCurados, cantMuertos, cantEnfermos);
+
 
             enfermedadService.registrarEnfermedad(enfermedad);
             JOptionPane.showMessageDialog(mainFrame, "Enfermedad creada exitosamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
             refreshEnfermedadesTable();
             populateEnfermedadComboBox(); 
             limpiarCamposEnfermedad();
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(mainFrame, "Error en formato de número (Curados, Muertos, Activos).", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(mainFrame, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            ValidationUtils.mostrarError(e.getMessage(), mainFrame);
         }
     }
     
     private void actualizarEnfermedad() {
         EnfermedadPanel ep = mainFrame.getEnfermedadPanel();
         String codigo = ep.getCodigoField().getText();
+        String mensaje = "";
+        boolean actualizada = false;
+        
         if (codigo.isEmpty()) {
-            JOptionPane.showMessageDialog(mainFrame, "Ingrese el codigo de la enfermedad a actualizar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
+            mensaje = "Ingrese el codigo de la enfermedad a actualizar.";
+        } else {
+            Enfermedad enfermedad = enfermedadService.getByCodigo(codigo);
+            if (enfermedad == null) {
+                mensaje = "Enfermedad no encontrada.";
+            } else {
+                try {
+                    ValidationUtils.validarNombre(ep.getNombreComunField().getText());
+                    ValidationUtils.validarNombre(ep.getNombreCientificoField().getText());
+
+                    int cantMuertos = ValidationUtils.validarNumeroEntero(ep.getMuertosField().getText(), "Muertos");
+                    int cantCurados = ValidationUtils.validarNumeroEntero(ep.getCuradosField().getText(), "Curados");
+                    int cantEnfermos = ValidationUtils.validarNumeroEntero(ep.getEnfermosActivosField().getText(), "Enfermos Activos");
+
+                    enfermedad.setNombreComun(ep.getNombreComunField().getText());
+                    enfermedad.setViaTransmision(ep.getViaTransmisionField().getText());
+                    enfermedad.setNombreCientifico(ep.getNombreCientificoField().getText());
+                    enfermedad.setCurados(cantCurados);
+                    enfermedad.setMuertos(cantMuertos);
+                    enfermedad.setEnfermosActivos(cantEnfermos);
+                    
+                    enfermedadService.actualizarEnfermedad(enfermedad);
+                    mensaje = "Enfermedad actualizada exitosamente.";
+                    actualizada = true;
+                    
+                } catch (NumberFormatException ex) {
+                    mensaje = "Error en formato de numero.";
+                } catch (IllegalArgumentException ex) {
+                    mensaje = "Error: " + ex.getMessage();
+                } catch (Exception e) {
+                    mensaje = "Error: " + e.getMessage();
+                }
+            }
         }
-        Enfermedad enfermedad = enfermedadService.getByCodigo(codigo);
-        if (enfermedad == null) {
-            JOptionPane.showMessageDialog(mainFrame, "Enfermedad no encontrada.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        try {
-            enfermedad.setNombreComun(ep.getNombreComunField().getText());
-            enfermedad.setViaTransmision(ep.getViaTransmisionField().getText());
-            enfermedad.setNombreCientifico(ep.getNombreCientificoField().getText());
-            if (!ep.getCuradosField().getText().isEmpty()) enfermedad.setCurados(Integer.parseInt(ep.getCuradosField().getText()));
-            if (!ep.getMuertosField().getText().isEmpty()) enfermedad.setMuertos(Integer.parseInt(ep.getMuertosField().getText()));
-            if (!ep.getEnfermosActivosField().getText().isEmpty()) enfermedad.setEnfermosActivos(Integer.parseInt(ep.getEnfermosActivosField().getText()));
-            
-            enfermedadService.actualizarEnfermedad(enfermedad);
-            JOptionPane.showMessageDialog(mainFrame, "Enfermedad actualizada exitosamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
+        
+        if (actualizada) {
+            JOptionPane.showMessageDialog(mainFrame, mensaje, "Éxito", JOptionPane.INFORMATION_MESSAGE);
             refreshEnfermedadesTable();
             populateEnfermedadComboBox();
             limpiarCamposEnfermedad();
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(mainFrame, "Error en formato de numero.", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(mainFrame, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(mainFrame, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
     
-    private void eliminarEnfermedad() {
-        EnfermedadPanel ep = mainFrame.getEnfermedadPanel();
-        String codigo = ep.getCodigoField().getText();
-        if (codigo.isEmpty()) {
-            JOptionPane.showMessageDialog(mainFrame, "Seleccione o ingrese el codigo de la enfermedad a eliminar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        int confirm = JOptionPane.showConfirmDialog(mainFrame, "¿Esta seguro de que desea eliminar esta enfermedad?", "Confirmar eliminacion", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                enfermedadService.eliminarEnfermedad(codigo);
-                JOptionPane.showMessageDialog(mainFrame, "Enfermedad eliminada exitosamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
-                refreshEnfermedadesTable();
-                populateEnfermedadComboBox();
-                limpiarCamposEnfermedad();
-            } catch (IllegalArgumentException ex) {
-                JOptionPane.showMessageDialog(mainFrame, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
     
     private void cargarEnfermedadSeleccionada() {
         EnfermedadPanel ep = mainFrame.getEnfermedadPanel();
@@ -437,7 +535,7 @@ public class SwingGuiController {
     private void refreshEnfermedadesTable() {
         EnfermedadPanel ep = mainFrame.getEnfermedadPanel();
         DefaultTableModel model = ep.getTableModel();
-        model.setRowCount(0); // Clear existing data
+        model.setRowCount(0); 
         List<Enfermedad> enfermedades = enfermedadService.getAll();
         for (Enfermedad enf : enfermedades) {
             model.addRow(new Object[]{
@@ -452,155 +550,368 @@ public class SwingGuiController {
         }
     }
     
-    private void mostrarEstadisticaSeleccionada() {
-        EstadisticasPanel esp = mainFrame.getEstadisticasPanel();
-        String seleccion = (String) esp.getEstadisticaComboBox().getSelectedItem();
-        JTextArea area = esp.getResultadoArea();
-        area.setText(""); 
 
-        switch (seleccion) {
-            case "Estadisticas Generales":
-                area.append("--- Estadisticas Generales ---\n");
-                area.append("Total de Pacientes: " + estadisticasService.getTotalPacientes() + "\n");
-                area.append("Total de Enfermedades: " + estadisticasService.getTotalEnfermedades() + "\n");
-                break;
-            case "Pacientes por Sexo":
-                area.append("--- Pacientes por Sexo ---\n");
-                Map<String, Integer> porSexo = estadisticasService.getPacientesPorSexo();
-                for (Map.Entry<String, Integer> entry : porSexo.entrySet()) {
-                    area.append(entry.getKey() + ": " + entry.getValue() + "\n");
-                }
-                break;
-            case "Enfermedades por Tipo de Transmision":
-                area.append("--- Enfermedades por Tipo de Transmision ---\n");
-                Map<String, Integer> porTipo = estadisticasService.getEnfermedadesPorTipo();
-                 for (Map.Entry<String, Integer> entry : porTipo.entrySet()) {
-                    area.append(entry.getKey() + ": " + entry.getValue() + "\n");
-                }
-                break;
-            case "Contagios Nacionales vs. Extranjero":
-                area.append("--- Relacion entre Contagios Nacionales y Extranjeros ---\n");
-                Map<String, Integer> porOrigen = estadisticasService.getPacientesPorOrigen();
-                int totalNacional = porOrigen.getOrDefault("Nacional", 0);
-                int totalExtranjero = porOrigen.getOrDefault("Extranjero", 0);
-                int total = totalNacional + totalExtranjero;
-                if (total > 0) {
-                    area.append(String.format("Nacional: %d (%.1f%%)\n", totalNacional, (totalNacional * 100.0 / total)));
-                    area.append(String.format("Extranjero: %d (%.1f%%)\n", totalExtranjero, (totalExtranjero * 100.0 / total)));
-                } else {
-                    area.append("No hay datos.\n");
-                }
-                break;
-            case "Casos por Rango de Edad y Sexo":
-                area.append("--- Casos por Rango de Edad y Sexo ---\n");
-                Map<String, Map<String, Integer>> casosEdadSexo = estadisticasService.getCasosPorEdadYSexo();
-                area.append(String.format("%-13s %-12s %-10s %s\n", "Rango Edad", "Masculino", "Femenino", "Total"));
-                area.append("------------------------------------------------\n");
-                for (Map.Entry<String, Map<String, Integer>> entry : casosEdadSexo.entrySet()) {
-                    String rango = entry.getKey();
-                    int masc = entry.getValue().getOrDefault("Masculino", 0);
-                    int fem = entry.getValue().getOrDefault("Femenino", 0);
-                    area.append(String.format("%-13s %-12d %-10d %d\n", rango, masc, fem, (masc + fem)));
-                }
-                break;
-            case "Estadisticas por Enfermedad (curados/fallecidos/enfermos)":
-                area.append("--- Estadisticas por Enfermedad ---\n");
-                Map<String, Map<String, Integer>> estEnf = estadisticasService.getEstadisticasPorEnfermedad();
-                area.append(String.format("%-22s %-10s %-12s %-10s %s\n", "Enfermedad", "Curados", "Fallecidos", "Enfermos", "Total"));
-                area.append("-------------------------------------------------------------------\n");
-                for (Map.Entry<String, Map<String, Integer>> entry : estEnf.entrySet()) {
-                    String enf = entry.getKey();
-                    int cur = entry.getValue().getOrDefault("Curados", 0);
-                    int fall = entry.getValue().getOrDefault("Fallecidos", 0);
-                    int act = entry.getValue().getOrDefault("Enfermos", 0);
-                    area.append(String.format("%-22s %-10d %-12d %-10d %d\n", enf, cur, fall, act, (cur+fall+act)));
-                }
-                break;
-            case "Contactos de Enfermos en el Exterior":
-                area.append("--- Personas en Vigilancia (Contactos de Enfermos en el Exterior) ---\n");
-                List<Persona> contactos = estadisticasService.getContactosDeEnfermosExterior();
-                if (contactos.isEmpty()) {
-                    area.append("No hay personas en vigilancia.\n");
-                } else {
-                    area.append(String.format("%-22s %-22s %-7s %-7s %s\n", "Nombre", "Apellido", "Edad", "Sexo", "Documento"));
-                    area.append("------------------------------------------------------------------------\n");
-                    for (Persona p : contactos) {
-                        area.append(String.format("%-22s %-22s %-7d %-7s %s\n",
-                                p.getNombre(), p.getApellidos(), p.getEdad(), p.getSexo(), p.getCarnetIdentidad()));
-                    }
-                }
-                break;
-            case "Enfermos por Pais y Mes (requiere input)":
-                String pais = JOptionPane.showInputDialog(mainFrame, "Ingrese el país:");
-                if (pais == null || pais.trim().isEmpty()) return;
-                String mesStr = JOptionPane.showInputDialog(mainFrame, "Ingrese el mes (1-12):");
-                if (mesStr == null || mesStr.trim().isEmpty()) return;
-                String anioStr = JOptionPane.showInputDialog(mainFrame, "Ingrese el año (ej. 2023):");
-                if (anioStr == null || anioStr.trim().isEmpty()) return;
-                try {
-                    int mes = Integer.parseInt(mesStr);
-                    int anio = Integer.parseInt(anioStr);
-                    area.append("--- Enfermos en " + pais + " durante " + mes + "/" + anio + " ---\n");
-                    Map<String, Integer> enfPaisMes = estadisticasService.getEnfermosPorPaisYMes(pais, mes, anio);
-                    if (enfPaisMes.isEmpty()) {
-                        area.append("No se encontraron datos.\n");
-                    } else {
-                        for (Map.Entry<String, Integer> entry : enfPaisMes.entrySet()) {
-                            area.append(entry.getKey() + ": " + entry.getValue() + " casos\n");
-                        }
-                    }
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(mainFrame, "Mes o año invalido.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-                break;
-            default:
-                area.append("Seleccion no implementada aun.\n");
+    private void cargarDatosDePrueba() {
+        try {
+
+
+            Enfermedad covid = new Enfermedad("COVID-19", "Respiratoria", "SARS-CoV-2");
+            enfermedadService.registrarEnfermedad(covid);
+            Enfermedad gripe = new Enfermedad("Gripe Comun", "Respiratoria", "Influenza");
+            enfermedadService.registrarEnfermedad(gripe);
+            Enfermedad malaria = new Enfermedad("Malaria", "Vector", "Plasmodium");
+            enfermedadService.registrarEnfermedad(malaria);
+
+            // --- Cargar pacientes de prueba ---
+            // Paciente 1: Cubano, contagio local (no en el exterior)
+            PersonaEnferma p1 = new PersonaEnferma("Carlos", "Diaz", "85010112345");
+            p1.setEdad(38);
+            p1.setSexo("M");
+            p1.setPais("Cuba");
+            p1.setEnfermo(true);
+            p1.setContagioExterior(false);
+            p1.setEnfermedad(gripe);
+            p1.setFechaContagio(dateFormat.parse("15-05-2025"));
+            pacienteService.registrarPaciente(p1);
+
+            // Paciente 2: Cubana, contagiada en el exterior
+            PersonaEnferma p2 = new PersonaEnferma("Ana", "Garcia", "90031554321");
+            p2.setEdad(33);
+            p2.setSexo("F");
+            p2.setPais("Cuba");
+            p2.setEnfermo(true);
+            p2.setContagioExterior(true); 
+            p2.setFechaContagio(dateFormat.parse("01-06-2025"));
+            List<VisitaPais> visitasAna = new ArrayList<VisitaPais>();
+            visitasAna.add(new VisitaPais("Espana", 15));
+            visitasAna.add(new VisitaPais("Francia", 5));
+            p2.setPaisesVisitados(visitasAna);
+            p2.setEnfermedad(covid);
+            pacienteService.registrarPaciente(p2);
+            
+            // Paciente 3: Extranjero, contagiado (siempre es en el exterior)
+            PersonaEnferma p3 = new PersonaEnferma("John", "Smith", "99999999999");
+            p3.setEdad(50);
+            p3.setSexo("M");
+            p3.setPais("USA");
+            p3.setEnfermo(true);
+            p3.setContagioExterior(true); 
+            p3.setFechaContagio(dateFormat.parse("20-04-2025"));
+            List<VisitaPais> visitasJohn = new ArrayList<VisitaPais>();
+            visitasJohn.add(new VisitaPais("Mexico", 10));
+            p3.setPaisesVisitados(visitasJohn);
+            p3.setEnfermedad(malaria);
+            pacienteService.registrarPaciente(p3);
+            
+            // Paciente 4: Cubana, sana
+            PersonaEnferma p4 = new PersonaEnferma("Laura", "Fernandez", "78122067890");
+            p4.setEdad(45);
+            p4.setSexo("F");
+            p4.setPais("Cuba");
+            p4.setEnfermo(false);
+            p4.setContagioExterior(false);
+            pacienteService.registrarPaciente(p4);
+
+            loadInitialData();
+            JOptionPane.showMessageDialog(mainFrame, "Datos de prueba cargados exitosamente.", "Exito", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(mainFrame, "Error al cargar datos de prueba: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void cargarDatosDePrueba() {
-        CargaDatosPanel cdp = mainFrame.getCargaDatosPanel();
-        JTextArea log = cdp.getLogArea();
-        log.setText("Cargando datos de prueba...\n");
+    private void mostrarEstadisticaSeleccionada() {
+        EstadisticasPanel panel = mainFrame.getEstadisticasPanel();
+        String seleccion = (String) panel.getEstadisticaComboBox().getSelectedItem();
+        JTextArea area = panel.getResultadoArea();
+        area.setText(""); 
+        String mensaje = "";
 
-        // Verifica si ya existen enfermedades o pacientes
-        if (!enfermedadService.getAll().isEmpty() || !pacienteService.getAll().isEmpty()) {
-            log.append("Ya existen datos cargados. No se cargaron datos de prueba.\n");
-            JOptionPane.showMessageDialog(mainFrame, "Ya existen datos cargados. No se cargaron datos de prueba.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return;
+        if (seleccion == null) {
+            mensaje = "Por favor, seleccione una estadistica.";
+        } else {
+            try {
+                if (seleccion.equals("Estadisticas Generales")) {
+                    mostrarEstadisticasGenerales(area);
+                } else if (seleccion.equals("Pacientes por Sexo")) {
+                    mostrarPacientesPorSexo(area);
+                } else if (seleccion.equals("Contagios Nacionales vs. Extranjero")) {
+                    mostrarContagiosPorOrigen(area);
+                } else if (seleccion.equals("Enfermedades por Tipo de Transmision")) {
+                    mostrarEnfermedadesPorTipo(area);
+                } else if (seleccion.equals("Casos por Rango de Edad y Sexo")) {
+                    mostrarCasosPorEdadYSexo(area);
+                } else if (seleccion.equals("Estadisticas por Enfermedad")) {
+                    mostrarEstadisticasPorEnfermedad(area);
+                } else if (seleccion.equals("Contactos de Enfermos en el Exterior")) {
+                    mostrarContactosExterior(area);
+                } else if (seleccion.equals("Todas las Estadisticas")) {
+                    mostrarTodasLasEstadisticas(area);
+                } else if (seleccion.equals("Enfermos por Pais y Mes (requiere input)")) {
+                    mostrarEnfermosPorPaisYMes(area);
+                } else {
+                    mensaje = "Estadistica '" + seleccion + "' no implementada.";
+                }
+            } catch (Exception e) {
+                mensaje = "Error al generar la estadistica: " + e.getMessage();
+            }
         }
-
-        Enfermedad covid = new Enfermedad("COVID-19", "Respiratoria", "SARS-CoV-2");
-        covid.setCurados(120); covid.setMuertos(15); covid.setEnfermosActivos(45);
-        enfermedadService.registrarEnfermedad(covid);
-        log.append("- Enfermedad COVID-19 registrada.\n");
-
-        Enfermedad dengue = new Enfermedad("Dengue", "Vectorial", "DENV");
-        dengue.setCurados(78); dengue.setMuertos(3); dengue.setEnfermosActivos(22);
-        enfermedadService.registrarEnfermedad(dengue);
-        log.append("- Enfermedad Dengue registrada.\n");
         
-        Enfermedad influenza = new Enfermedad("Influenza", "Respiratoria", "H1N1");
-        influenza.setCurados(230); influenza.setMuertos(8); influenza.setEnfermosActivos(65);
-        enfermedadService.registrarEnfermedad(influenza);
-        log.append("- Enfermedad Influenza registrada.\n");
+        if (!mensaje.isEmpty()) {
+            area.setText(mensaje);
+        }
+    }
 
-        PersonaEnferma p1 = new PersonaEnferma("Carlos", "Rodriguez", "12345678A");
-        p1.setEdad(25); p1.setSexo("M"); p1.setContagioExterior(false); p1.setEnfermo(true);
-        p1.setPais("Cuba"); p1.setFechaContagio(new Date(122, 4, 15)); p1.setEnfermedad(covid);
-        pacienteService.registrarPaciente(p1);
-        log.append("- Paciente Carlos Rodriguez registrado.\n");
+    
 
-        PersonaEnferma p2 = new PersonaEnferma("Maria", "Gonzalez", "23456789B");
-        p2.setEdad(42); p2.setSexo("F"); p2.setContagioExterior(true); p2.setEnfermo(false); 
-        p2.setPais("Australia"); p2.setFechaContagio(new Date(122, 5, 20)); p2.setEnfermedad(dengue);
-        pacienteService.registrarPaciente(p2);
-        log.append("- Paciente Maria Gonzalez registrada.\n");
+    private void mostrarEstadisticasGenerales(JTextArea area) {
+        area.append("--- Estadisticas Generales ---\n");
+        area.append("Total de Pacientes Registrados: " + estadisticasService.getTotalPacientes() + "\n");
+        area.append("Total de Enfermedades Registradas: " + estadisticasService.getTotalEnfermedades() + "\n");
+        area.append("Pacientes Actualmente Enfermos: " + estadisticasService.getPacientesEnfermos() + "\n");
+    }
+
+    private void mostrarPacientesPorSexo(JTextArea area) {
+        area.append("--- Pacientes por Sexo ---\n");
+        Map<String, Integer> porSexo = estadisticasService.getPacientesPorSexo();
+        for (Map.Entry<String, Integer> entry : porSexo.entrySet()) {
+            area.append(entry.getKey() + ": " + entry.getValue() + "\n");
+        }
+    }
+
+    private void mostrarContagiosPorOrigen(JTextArea area) {
+        area.append("--- Contagios por Origen ---\n");
+        Map<String, Integer> porOrigen = estadisticasService.getPacientesPorOrigen();
+        for (Map.Entry<String, Integer> entry : porOrigen.entrySet()) {
+            area.append(entry.getKey() + ": " + entry.getValue() + "\n");
+        }
+    }
+
+
+    private void mostrarEnfermedadesPorTipo(JTextArea area) {
+        area.append("--- Enfermedades por Tipo de Transmision ---\n");
+        Map<String, Integer> porTipo = estadisticasService.getEnfermedadesPorTipo();
+        for (Map.Entry<String, Integer> entry : porTipo.entrySet()) {
+            area.append(entry.getKey() + ": " + entry.getValue() + "\n");
+        }
+    }
+
+    private void mostrarCasosPorEdadYSexo(JTextArea area) {
+        area.append("--- Casos por Rango de Edad y Sexo ---\n");
+        Map<String, Map<String, Integer>> porEdadYSexo = estadisticasService.getCasosPorEdadYSexo();
+        for (Map.Entry<String, Map<String, Integer>> entry : porEdadYSexo.entrySet()) {
+            area.append("Rango de Edad " + entry.getKey() + ":\n");
+            for (Map.Entry<String, Integer> sexoEntry : entry.getValue().entrySet()) {
+                area.append("  " + sexoEntry.getKey() + ": " + sexoEntry.getValue() + "\n");
+            }
+        }
+    }
+
+    private void mostrarEstadisticasPorEnfermedad(JTextArea area) {
+        area.append("--- Estadisticas por Enfermedad ---\n");
+        Map<String, Map<String, Integer>> estPorEnf = estadisticasService.getEstadisticasPorEnfermedad();
+        for (Map.Entry<String, Map<String, Integer>> entry : estPorEnf.entrySet()) {
+            area.append("Enfermedad: " + entry.getKey() + "\n");
+            for (Map.Entry<String, Integer> detalleEntry : entry.getValue().entrySet()) {
+                area.append("  " + detalleEntry.getKey() + ": " + detalleEntry.getValue() + "\n");
+            }
+        }
+    }
+
+    private void mostrarContactosExterior(JTextArea area) {
+        area.append("--- Contactos de Enfermos en el Exterior (Vigilancia) ---\n");
+        List<Persona> contactos = estadisticasService.getContactosDeEnfermosExterior();
+        if (contactos.isEmpty()) {
+            area.append("No se encontraron contactos en vigilancia para esta categoria.\n");
+        } else {
+            area.append(String.format("%-20s %-20s %-5s %-15s\n", "Nombre", "Apellidos", "Edad", "Documento"));
+            area.append("------------------------------------------------------------------\n");
+            for (Persona p : contactos) {
+                area.append(String.format("%-20s %-20s %-5d %-15s\n",
+                        p.getNombre(), p.getApellidos(), p.getEdad(), p.getCarnetIdentidad()));
+            }
+        }
+    }
+        private void mostrarEnfermosPorPaisYMes(JTextArea area) {
+        String pais = JOptionPane.showInputDialog(mainFrame, "Ingrese el nombre del pais:", "Filtro por Pais", JOptionPane.QUESTION_MESSAGE);
+        String mensaje = "";
         
-        log.append("Datos de prueba cargados exitosamente.\n");
-        refreshPacientesTable();
-        refreshEnfermedadesTable();
-        populateEnfermedadComboBox();
-        JOptionPane.showMessageDialog(mainFrame, "Datos de prueba cargados.", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+        if (pais == null || pais.trim().isEmpty()) {
+            mensaje = "Operacion cancelada. No se ingreso un pais.";
+        } else {
+            pais = pais.trim();
+            String mesAnioStr = JOptionPane.showInputDialog(mainFrame, "Ingrese el mes y anio (MM-yyyy):", "Filtro por Fecha", JOptionPane.QUESTION_MESSAGE);
+            
+            if (mesAnioStr == null || mesAnioStr.trim().isEmpty()) {
+                mensaje = "Operacion cancelada. No se ingreso una fecha.";
+            } else {
+                try {
+                    String[] parts = mesAnioStr.trim().split("-");
+                    if (parts.length != 2) {
+                        mensaje = "Error en el formato de fecha. Por favor, use MM-yyyy.";
+                    } else {
+                        int mes = Integer.parseInt(parts[0]);
+                        int anio = Integer.parseInt(parts[1]);
+
+                        if (mes < 1 || mes > 12 || anio < 1900 || anio > 2100) {
+                            mensaje = "Error: Mes o anio fuera de rango valido.";
+                        } else {
+                            Map<String, Integer> enfermosPorEnfermedad = estadisticasService.getEnfermosPorPaisYMes(pais, mes, anio);
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("--- Casos por Enfermedad en '").append(pais).append("' durante ").append(mesAnioStr).append(" ---\n");
+                            
+                            if (enfermosPorEnfermedad.isEmpty()) {
+                                sb.append("No se encontraron casos para los criterios seleccionados.\n");
+                            } else {
+                                sb.append(String.format("%-30s %-10s\n", "Enfermedad", "Casos"));
+                                sb.append("----------------------------------------\n");
+                                
+                                int totalCasos = 0;
+                                for (Map.Entry<String, Integer> entry : enfermosPorEnfermedad.entrySet()) {
+                                    sb.append(String.format("%-30s %-10d\n", entry.getKey(), entry.getValue()));
+                                    totalCasos += entry.getValue();
+                                }
+                                sb.append("\nTotal de casos: ").append(totalCasos).append("\n");
+                            }
+                            mensaje = sb.toString();
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                    mensaje = "Error en el formato de fecha. Por favor, use MM-yyyy.";
+                }
+            }
+        }
+        area.setText(mensaje);
+    }
+
+
+    private void mostrarTodasLasEstadisticas(JTextArea area) {
+        area.append("=== REPORTE COMPLETO DE ESTADISTICAS ===\n\n");
+        mostrarEstadisticasGenerales(area);
+        area.append("\n");
+        mostrarPacientesPorSexo(area);
+        area.append("\n");
+        mostrarContagiosPorOrigen(area);
+        area.append("\n");
+        mostrarEnfermedadesPorTipo(area);
+        area.append("\n");
+        mostrarCasosPorEdadYSexo(area);
+        area.append("\n");
+        mostrarEstadisticasPorEnfermedad(area);
+        area.append("\n");
+        mostrarContactosExterior(area);
+    }
+
+
+private List<VisitaPais> parsePaisesVisitados(String text) throws IllegalArgumentException {
+        List<VisitaPais> visitas = new ArrayList<VisitaPais>();
+        
+        if (text != null && !text.trim().isEmpty()) {
+            String[] paisesEntries = text.split(";");
+            for (String entry : paisesEntries) {
+                if (!entry.trim().isEmpty()) {
+                    String[] parts = entry.split(",");
+                    if (parts.length != 2) {
+                        throw new IllegalArgumentException("Formato invalido para paises visitados. Use 'pais,dias;...'. Error en: " + entry);
+                    }
+                    String pais = parts[0].trim();
+                    String diasStr = parts[1].trim();
+                    if (pais.isEmpty()) {
+                        throw new IllegalArgumentException("El nombre del pais no puede estar vacio.");
+                    }
+                    try {
+                        int dias = Integer.parseInt(diasStr);
+                        if (dias <= 0) {
+                            throw new IllegalArgumentException("Los dias de estancia deben ser un numero positivo.");
+                        }
+                        visitas.add(new VisitaPais(pais, dias));
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException("Formato de dias invalido para el pais: " + pais);
+                    }
+                }
+            }
+        }
+        return visitas;
+    }
+
+    private Date validarFecha(String fechaStr) throws Exception {
+        return ValidationUtils.validarYParsearFecha(fechaStr, "contagio");
+    }
+
+    private String formatPaisesVisitados(List<VisitaPais> visitas) {
+        String resultado = "";
+        
+        if (visitas != null && !visitas.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < visitas.size(); i++) {
+                VisitaPais visita = visitas.get(i);
+                sb.append(visita.getPais()).append(",").append(visita.getDiasEstancia());
+                if (i < visitas.size() - 1) {
+                    sb.append(";");
+                }
+            }
+            resultado = sb.toString();
+        }
+        return resultado;
+    }
+
+        private List<PersonaContacto> parseContactos(String text) throws IllegalArgumentException {
+        List<PersonaContacto> contactos = new ArrayList<PersonaContacto>();
+        
+        if (text != null && !text.trim().isEmpty()) {
+            String[] contactosEntries = text.split(";");
+            for (String entry : contactosEntries) {
+                if (!entry.trim().isEmpty()) {
+                    String[] parts = entry.split(",");
+                    if (parts.length != 6) {
+                        throw new IllegalArgumentException("Formato invalido para contactos. Use 'nombre,apellido,ci,edad,sexo,fecha;...'. Error en: " + entry);
+                    }
+                    
+                    String nombre = parts[0].trim();
+                    String apellido = parts[1].trim();
+                    String ci = parts[2].trim();
+                    String edadStr = parts[3].trim();
+                    String sexo = parts[4].trim();
+                    String fechaStr = parts[5].trim();
+                    
+                    try {
+                        int edad = Integer.parseInt(edadStr);
+                        Date fechaContacto = ValidationUtils.validarYParsearFecha(fechaStr, "contacto");
+                        PersonaContacto contacto = new PersonaContacto(nombre, apellido, ci);
+                        contacto.setEdad(edad);
+                        contacto.setSexo(sexo);
+                        contacto.setFechaEntrevista(fechaContacto);
+                        contactos.add(contacto);
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException("Error en la edad del contacto: " + entry);
+                    } catch (Exception e) {
+                        throw new IllegalArgumentException("Error en la fecha del contacto: " + entry + ". " + e.getMessage());
+                    }
+                }
+            }
+        }
+        return contactos;
+    }
+
+    private String formatContactos(List<PersonaContacto> contactos) {
+        String resultado = "";
+        
+        if (contactos != null && !contactos.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < contactos.size(); i++) {
+                PersonaContacto contacto = contactos.get(i);
+                sb.append(contacto.getNombre()).append(",")
+                  .append(contacto.getApellidos()).append(",")
+                  .append(contacto.getCarnetIdentidad()).append(",")
+                  .append(contacto.getEdad()).append(",")
+                  .append(contacto.getSexo()).append(",")
+                  .append(dateFormat.format(contacto.getFechaEntrevista()));
+                if (i < contactos.size() - 1) {
+                    sb.append(";");
+                }
+            }
+            resultado = sb.toString();
+        }
+        return resultado;
     }
 }

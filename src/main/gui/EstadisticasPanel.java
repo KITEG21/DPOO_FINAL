@@ -51,7 +51,7 @@ public class EstadisticasPanel extends JPanel {
                 "Enfermedades por Tipo de Transmision",
                 "Contagios Nacionales vs. Extranjero",
                 "Casos por Rango de Edad y Sexo",
-                "Estadisticas por Enfermedad (curados/fallecidos/enfermos)",
+                "Estadisticas por Enfermedad",
                 "Contactos de Enfermos en el Exterior",
                 "Enfermos por Pais y Mes (requiere input)",
         });

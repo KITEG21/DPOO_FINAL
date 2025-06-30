@@ -15,12 +15,15 @@ public class PacienteRepository {
     }
 
     public Persona getByCodigo(String codigo) {
-        for (Persona p : pacientes) {
-            if (p.obtenerCodigo().equals(codigo)) {
-                return p;
+        Persona resultado = null;
+        int i = 0;
+        while (i < pacientes.size() && resultado == null) {
+            if (pacientes.get(i).obtenerCodigo().equals(codigo)) {
+                resultado = pacientes.get(i);
             }
+            i++;
         }
-        return null;
+        return resultado;
     }
 
     public List<Persona> getAll() {
@@ -38,23 +41,30 @@ public class PacienteRepository {
 
     }
     
-    public boolean update(Persona persona) {
-        for (int i = 0; i < pacientes.size(); i++) {
+   public boolean update(Persona persona) {
+        boolean actualizado = false;
+        int i = 0;
+        while (i < pacientes.size() && !actualizado) {
             if (pacientes.get(i).obtenerCodigo().equals(persona.obtenerCodigo())) {
                 pacientes.set(i, persona);
-                return true;
+                actualizado = true;
             }
+            i++;
         }
-        return false;
+        return actualizado;
     }
 
     public boolean delete(String codigo) {
-        for (int i = 0; i < pacientes.size(); i++) {
+        boolean eliminado = false;
+        int i = 0;
+        while (i < pacientes.size() && !eliminado) {
             if (pacientes.get(i).obtenerCodigo().equals(codigo)) {
                 pacientes.remove(i);
-                return true;
+                eliminado = true;
+            } else {
+                i++;
             }
         }
-        return false;
+        return eliminado;
     }
 }

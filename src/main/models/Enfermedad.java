@@ -18,7 +18,6 @@ public class Enfermedad implements Codificador {
     private Map<String, Integer> pacientesPorSexo;
     private Map<String, Integer> pacientesPorRangoEdad;
 	
-	// Constructor
 	public Enfermedad(String nombreComun, String nombreCientifico, String viaTransmision, int periodoIncubacion, int cantPacientes){
 		setNombreComun(nombreComun);
 		setNombreCientifico(nombreCientifico);
@@ -32,6 +31,15 @@ public class Enfermedad implements Codificador {
 		setNombreCientifico(codigo);
 	}
 
+	public Enfermedad(String nombreComun, String nombreCientifico,
+			String viaTransmision, int curados, int muertos, int enfermosActivos) {
+		setNombreComun(nombreComun);
+		setNombreCientifico(nombreCientifico);
+		setViaTransmision(viaTransmision);
+		setCurados(curados);
+		setMuertos(muertos);
+		setEnfermosActivos(enfermosActivos);
+	}
 	// Getters y Setters
 	public String getNombreComun() {
 		return nombreComun;
@@ -70,7 +78,7 @@ public class Enfermedad implements Codificador {
 	}
 
 	public void setCantPacientes(int cantPacientes) {
-		this.cantPacientes = cantPacientes;
+		this.cantPacientes = getMuertos() + getEnfermosActivos() + getCurados();
 	}
 
 	public int getCurados() {

@@ -27,7 +27,7 @@ public class Persona implements Codificador {
 
     }
 	
-	// Getters y Setters
+
 	public String getNombre() {
 		return nombre;
 	}

@@ -5,6 +5,11 @@ public class VisitaPais {
 	 private int diasEstancia;
 	 
 	 
+	 
+	public VisitaPais(String pais, int diasEstancia) {
+		this.pais = pais;
+		this.diasEstancia = diasEstancia;
+	}
 	public String getPais() {
 		return pais;
 	}
